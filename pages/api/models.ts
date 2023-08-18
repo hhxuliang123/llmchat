@@ -6,8 +6,8 @@ export const config = {
   runtime: 'edge',
 };
 
-const handler = async (req: Request): Promise<Response> => {
-  try {
+const handler_old = async (req: Request): Promise<Response> => {
+    try {
     const { key } = (await req.json()) as {
       key: string;
     };
@@ -69,4 +69,10 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
+const handler = async (req: Request): Promise<Response> => {
+  return new Response(JSON.stringify([
+    { id: 'chatglm6', name: 'chatglm6'},
+    { id: 'gpt-3.5-turbo', name: 'GPT-3.5'}
+  ]), { status: 200 });
+}
 export default handler;

@@ -115,3 +115,61 @@ export const OpenAIStream = async (
 
   return stream;
 };
+
+
+const url = "http://172.16.6.11:8000";
+
+export const Chatgml6Stream = async (
+  messages: Message[],
+  top_p: number,
+  temperature: number,
+  max_length: number,
+) => {
+  // streamed response
+  const response = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      prompt: messages[messages.length-1].content,
+      top_p: top_p,
+      temperature: temperature,
+      max_length: max_length,
+      history:[],
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  //@ts-ignore
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  const convertToReadableStream = async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          let json = '';
+          const decoder = new TextDecoder(); 
+          const encoder = new TextEncoder();
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              //console.log(json)
+              let ret = JSON.parse(json)['response'];
+              const queue = encoder.encode(ret);
+              controller.enqueue(queue);
+              controller.close();
+              return;
+            }
+            const stringValue = decoder.decode(value); 
+            json += stringValue;
+          }
+        } finally {
+          reader.releaseLock();
+        }
+      },
+    });
+
+    return stream;
+  };
+
+  return await convertToReadableStream(reader);
+};

@@ -1,5 +1,5 @@
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
-import { OpenAIError, OpenAIStream } from '@/utils/server';
+import { OpenAIError, OpenAIStream, Chatgml6Stream } from '@/utils/server';
 
 import { ChatBody, Message } from '@/types/chat';
 
@@ -51,9 +51,13 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     encoding.free();
-
-    const stream = await OpenAIStream(model, promptToSend, temperatureToUse, key, messagesToSend);
-
+    let stream = null;
+    if (model['id'] == 'gpt-3.5-turbo') {
+        stream = await OpenAIStream(model, promptToSend, temperatureToUse, key, messagesToSend);
+    }
+    if (model['id'] == 'chatglm6') {
+        stream = await Chatgml6Stream(messagesToSend, 0.7, temperatureToUse, 32000);
+    }
     return new Response(stream);
   } catch (error) {
     console.error(error);
