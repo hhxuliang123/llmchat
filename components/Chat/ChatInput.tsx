@@ -5,6 +5,10 @@ import {
   IconPlayerStop,
   IconRepeat,
   IconSend,
+  IconBrandReason,
+  IconFileText,
+  IconForms,
+  IconMail,
 } from '@tabler/icons-react';
 import {
   KeyboardEvent,
@@ -19,7 +23,7 @@ import {
 import { useTranslation } from 'next-i18next';
 
 import { Message } from '@/types/chat';
-import { Plugin } from '@/types/plugin';
+import { Plugin, PluginID } from '@/types/plugin';
 import { Prompt } from '@/types/prompt';
 
 import HomeContext from '@/pages/api/home/home.context';
@@ -30,7 +34,7 @@ import { VariableModal } from './VariableModal';
 
 interface Props {
   onSend: (message: Message, plugin: Plugin | null) => void;
-  onRegenerate: () => void;
+  onRegenerate: (plugin: Plugin | null) => void;
   onScrollDownClick: () => void;
   stopConversationRef: MutableRefObject<boolean>;
   textareaRef: MutableRefObject<HTMLTextAreaElement | null>;
@@ -52,7 +56,8 @@ export const ChatInput = ({
 
     dispatch: homeDispatch,
   } = useContext(HomeContext);
-
+  
+  const [filename, setFilename] = useState<string>();
   const [content, setContent] = useState<string>();
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [showPromptList, setShowPromptList] = useState(false);
@@ -91,15 +96,19 @@ export const ChatInput = ({
     if (messageIsStreaming) {
       return;
     }
-
+    
     if (!content) {
       alert(t('Please enter a message'));
       return;
     }
+    if (plugin && plugin.id === PluginID.FILE && plugin.requiredKeys[0].value.trim() === '') {
+      alert(t('No valid file!'));
+      return;
+    }
 
     onSend({ role: 'user', content }, plugin);
-    setContent('');
-    setPlugin(null);
+          setContent('');
+        //setPlugin(null);
 
     if (window.innerWidth < 640 && textareaRef && textareaRef.current) {
       textareaRef.current.blur();
@@ -273,19 +282,57 @@ export const ChatInput = ({
           selectedConversation.messages.length > 0 && (
             <button
               className="absolute top-0 left-0 right-0 mx-auto mb-3 flex w-fit items-center gap-3 rounded border border-neutral-200 bg-white py-2 px-4 text-black hover:opacity-50 dark:border-neutral-600 dark:bg-[#343541] dark:text-white md:mb-0 md:mt-2"
-              onClick={onRegenerate}
+              onClick={() => onRegenerate(plugin)}
             >
               <IconRepeat size={16} /> {t('Regenerate response')}
             </button>
           )}
-
+        
         <div className="relative mx-2 flex w-full flex-grow flex-col rounded-md border border-black/10 bg-white shadow-[0_0_10px_rgba(0,0,0,0.10)] dark:border-gray-900/50 dark:bg-[#40414F] dark:text-white dark:shadow-[0_0_15px_rgba(0,0,0,0.10)] sm:mx-4">
+          <div className="dark:text-white/50 "
+          style={
+            {
+              position: 'absolute',
+              left: -100,
+              top: 11,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '95px',
+
+            }
+          }>
+            <a
+              href="https://www.perfectek.com"
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+              title={filename}
+            >
+              {filename}
+            </a>          
+          </div>
           <button
             className="absolute left-2 top-2 rounded-sm p-1 text-neutral-800 opacity-60 hover:bg-neutral-200 hover:text-neutral-900 dark:bg-opacity-50 dark:text-neutral-100 dark:hover:text-neutral-200"
             onClick={() => setShowPluginSelect(!showPluginSelect)}
             onKeyDown={(e) => {}}
           >
-            {plugin ? <IconBrandGoogle size={20} /> : <IconBolt size={20} />}
+            {(() => {
+              switch (plugin?.id) {
+                case PluginID.GOOGLE_SEARCH:
+                  return <IconBrandGoogle size={20} />;
+                case PluginID.CHECK_LIST:
+                  return <IconBrandReason size={20} />;
+                case PluginID.TC:
+                  return <IconForms size={20} />;
+                case PluginID.MAIL:
+                  return <IconMail size={20} />;
+                case PluginID.FILE:
+                  return <IconFileText size={20} />;
+                default:
+                  return <IconBolt size={20} />;
+              }
+            })()}
           </button>
 
           {showPluginSelect && (
@@ -300,9 +347,36 @@ export const ChatInput = ({
                   }
                 }}
                 onPluginChange={(plugin: Plugin) => {
-                  setPlugin(plugin);
+                  if(plugin && plugin.id === PluginID.FILE){
+                    let name = plugin.requiredKeys[0].value;
+                    setFilename(name);
+                  } else {
+                    setFilename('');
+                  }
+                  if (plugin === undefined){
+                    setPlugin(null);
+                  } else{
+                    setPlugin(plugin);
+                  }
                   setShowPluginSelect(false);
-
+                  if(false){
+                    if(plugin && plugin.id === PluginID.TC){
+                      let str = '开始编写测试例，请列举你能够提供的指导和帮助。';
+                      onSend({ role: 'user', content: str }, plugin);
+                    } else if(plugin && plugin.id === PluginID.CHECK_LIST){
+                      let str = '需要一些Hawkeye使用问题的帮助，请列举你能够提供的指导和帮助。';
+                      onSend({ role: 'user', content: str }, plugin);
+                    } else if(plugin && plugin.id === PluginID.GOOGLE_SEARCH){
+                      let str = 'Hello Google';
+                      onSend({ role: 'user', content: str }, plugin);
+                    } else if(plugin && plugin.id === PluginID.MAIL){
+                      let str = '总结一下邮件信息';
+                      onSend({ role: 'user', content: str }, plugin);
+                    } else if(!plugin){
+                      let str = 'Hello.';
+                      onSend({ role: 'user', content: str }, plugin);
+                    } 
+                  }
                   if (textareaRef && textareaRef.current) {
                     textareaRef.current.focus();
                   }
@@ -381,16 +455,16 @@ export const ChatInput = ({
       </div>
       <div className="px-3 pt-2 pb-3 text-center text-[12px] text-black/50 dark:text-white/50 md:px-4 md:pt-3 md:pb-6">
         <a
-          href="https://github.com/mckaywrigley/chatbot-ui"
+          href="https://www.perfectek.com"
           target="_blank"
           rel="noreferrer"
           className="underline"
         >
-          ChatBot UI
+          Perfectek Chat
         </a>
         .{' '}
         {t(
-          "Chatbot UI is an advanced chatbot kit for OpenAI's chat models aiming to mimic ChatGPT's interface and functionality.",
+          "Perfectek Chat is an advanced chatbot kit for Perfectek internal AI system and API interface.",
         )}
       </div>
     </div>

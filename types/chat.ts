@@ -1,4 +1,5 @@
 import { OpenAIModel } from './openai';
+import { Plugin, PluginID } from '@/types/plugin';
 
 export interface Message {
   role: Role;
@@ -13,6 +14,7 @@ export interface ChatBody {
   key: string;
   prompt: string;
   temperature: number;
+  knowledge: Plugin;
 }
 
 export interface Conversation {

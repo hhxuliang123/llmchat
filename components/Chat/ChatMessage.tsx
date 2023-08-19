@@ -5,6 +5,7 @@ import {
   IconRobot,
   IconTrash,
   IconUser,
+  IconRun,
 } from '@tabler/icons-react';
 import { FC, memo, useContext, useEffect, useRef, useState } from 'react';
 
@@ -17,6 +18,7 @@ import { Message } from '@/types/chat';
 import HomeContext from '@/pages/api/home/home.context';
 
 import { CodeBlock } from '../Markdown/CodeBlock';
+import { TCBlock } from '../Markdown/TCBlock';
 import { MemoizedReactMarkdown } from '../Markdown/MemoizedReactMarkdown';
 
 import rehypeMathjax from 'rehype-mathjax';
@@ -41,7 +43,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [messageContent, setMessageContent] = useState(message.content);
   const [messagedCopied, setMessageCopied] = useState(false);
-
+  
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const toggleEditing = () => {
@@ -99,6 +101,31 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
       e.preventDefault();
       handleEditMessage();
     }
+  };
+
+  const updateCodeBlock = (c : string, star:any,end:any) => {
+    if (!selectedConversation) return;
+
+    const { messages } = selectedConversation;
+    //const findIndex = messages.findIndex((elm) => elm === message);
+    const findIndex = messages.findIndex(elm => elm.content === message.content && elm.role === message.role);
+  
+    if (findIndex < 0) return;
+
+    const originalString = messages[findIndex]['content'];
+    const newString  =  originalString.slice(0,  star)  +  c  +  originalString.slice(end);
+    messages[findIndex]['content'] = newString;
+    const updatedConversation = {
+      ...selectedConversation,
+      messages,
+    };
+
+    const { single, all } = updateConversation(
+      updatedConversation,
+      conversations,
+    );
+    homeDispatch({ field: 'selectedConversation', value: single });
+    homeDispatch({ field: 'conversations', value: all });
   };
 
   const copyOnClick = () => {
@@ -224,12 +251,15 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                     }
 
                     const match = /language-(\w+)/.exec(className || '');
-
                     return !inline ? (
                       <CodeBlock
                         key={Math.random()}
                         language={(match && match[1]) || ''}
                         value={String(children).replace(/\n$/, '')}
+                        star={node['position']['start']['offset']}
+                        end={node['position']['end']['offset']}
+                        onUpdate={updateCodeBlock}
+                        
                         {...props}
                       />
                     ) : (
@@ -238,11 +268,43 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                       </code>
                     );
                   },
+                  h2({ children }){
+                    if (children.includes('INNER_HAWKEYE_TESTCASE_ACTION_START') || children.includes('INNER_HAWKEYE_TESTCASE_ACTION_END')){
+                      return <TCBlock
+                        key={Math.random()}
+                        value={String(children)}
+                        msg={messageContent}
+                      />
+                    }
+                    if (children.includes('INNER_MAIL_ACTION_START') || children.includes('INNER_MAIL_ACTION_END')){
+                      return <TCBlock
+                        key={Math.random()}
+                        value={String(children)}
+                        msg={messageContent}
+                      />
+                    }
+                    else {
+                      return <h2 className="text-2xl font-bold">{children}</h2>;
+                    }
+                    
+                  },
                   table({ children }) {
                     return (
-                      <table className="border-collapse border border-black px-3 py-1 dark:border-white">
-                        {children}
-                      </table>
+                      <div>
+                        <button
+                          className="hidden flex items-center rounded bg-none p-1 text-xs text-white"
+                          style={{float:'right'}}
+                        >
+                          {<IconRun size={18} />}
+                          {t('Execute')}
+                        </button>
+                        <table className="border-collapse border border-black px-3 py-1 dark:border-white"
+                        style={{
+                          marginTop: 0,
+                        }}>
+                          {children}
+                        </table>
+                      </div>
                     );
                   },
                   th({ children }) {

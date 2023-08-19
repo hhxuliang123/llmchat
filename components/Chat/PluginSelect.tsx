@@ -1,8 +1,8 @@
-import { FC, useEffect, useRef } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 
 import { useTranslation } from 'next-i18next';
 
-import { Plugin, PluginList } from '@/types/plugin';
+import { Plugin, PluginList, PluginID } from '@/types/plugin';
 
 interface Props {
   plugin: Plugin | null;
@@ -16,7 +16,7 @@ export const PluginSelect: FC<Props> = ({
   onKeyDown,
 }) => {
   const { t } = useTranslation('chat');
-
+  const [selectedFile, setSelectedFile] = useState(null);
   const selectRef = useRef<HTMLSelectElement>(null);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLSelectElement>) => {
@@ -69,11 +69,68 @@ export const PluginSelect: FC<Props> = ({
           placeholder={t('Select a plugin') || ''}
           value={plugin?.id || ''}
           onChange={(e) => {
+            console.log(PluginList);
+            if(e.target.value === PluginID.FILE){
+              // 选择了插件 "FILE"
+              const fileInput = document.createElement('input');
+              fileInput.type = 'file';
+              fileInput.accept = '.pdf,.tsx,.ts,.py,.js,.txt,.md,.png,.jpg'; // 限制文件类型
+              const handleFileUpload = (event) => {
+                const file = event.target.files[0]; // 获取选中的文件
+                // 判断文件后缀名
+                //const allowedExtensions = /(\.pdf|\.txt|\.md)$/i;
+                const allowedExtensions = /(\.pdf|\.tsx|\.ts|\.py|\.js|\.txt|\.md|\.jpg|\.png)$/i;
+                if (allowedExtensions.test(file.name)) {
+                
+                    let formData = new FormData();
+                    formData.append('file', file);
+            
+                    fetch('http://172.16.6.11:8000/upload_file', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                      if (response.ok) {
+                        return response.json();
+                      } else {
+                        throw new Error('请求服务失败'); // 抛出自定义的错误
+                      }
+                    })
+                    .then(data => {
+                        console.log(PluginList);
+                        setSelectedFile(file); // 设置选中的文件
+                        let f_plugin = PluginList.find(
+                          (plugin) => plugin.id === e.target.value,
+                        ) as Plugin;
+                        console.log(e.target.value);
+                        console.log(f_plugin);
+                        f_plugin.requiredKeys[0].value = data.filename;
+                        onPluginChange(
+                          f_plugin
+                        );
+                        alert('The file is upload successfully, can talk with it!');
+                    })
+                    .catch((error) => {
+                        alert('文件上传错误');
+                        console.error('Error:', error);
+                    });
+                  
+                } else {
+                  // 文件后缀名不符合要求，进行相应提示或处理逻辑
+                  alert('ERROR:The file is not supported');
+                  console.log('The file is not supported');
+                }
+            
+              };
+              fileInput.addEventListener('change', handleFileUpload);
+              fileInput.click(); // 触发文件选择框的点击事件
+            }
             onPluginChange(
               PluginList.find(
                 (plugin) => plugin.id === e.target.value,
               ) as Plugin,
             );
+            
           }}
           onKeyDown={(e) => {
             handleKeyDown(e);
@@ -84,7 +141,7 @@ export const PluginSelect: FC<Props> = ({
             value="chatgpt"
             className="dark:bg-[#343541] dark:text-white"
           >
-            ChatGPT
+            AIChat
           </option>
 
           {PluginList.map((plugin) => (

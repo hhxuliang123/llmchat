@@ -71,8 +71,11 @@ const handler_old = async (req: Request): Promise<Response> => {
 
 const handler = async (req: Request): Promise<Response> => {
   return new Response(JSON.stringify([
-    { id: 'chatglm6', name: 'chatglm6'},
-    { id: 'gpt-3.5-turbo', name: 'GPT-3.5'}
+    { id: 'chatglm6', name: 'ChatGLM2-6B'},
+    { id: 'gpt-3.5-turbo', name: 'GPT-3.5'},
+    { id: 'gpt-4', name: 'GPT-4'},
+    { id: 'zhipu', name: 'ZhipuAI'},
+    { id: 'google', name: 'Google Search'}
   ]), { status: 200 });
 }
 export default handler;
