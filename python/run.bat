@@ -1,0 +1,1 @@
+python -m uvicorn main:app --host 172.16.1.68  --port 11223

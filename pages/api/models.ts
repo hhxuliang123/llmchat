@@ -74,6 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
     { id: 'chatglm6', name: 'ChatGLM2-6B'},
     { id: 'gpt-3.5-turbo', name: 'GPT-3.5'},
     { id: 'gpt-4', name: 'GPT-4'},
+    { id: 'spark', name: 'Spark'},
     { id: 'zhipu', name: 'ZhipuAI'},
     { id: 'google', name: 'Google Search'}
   ]), { status: 200 });

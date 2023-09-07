@@ -38,3 +38,5 @@ yarn-error.log*
 next-env.d.ts
 .idea
 pnpm-lock.yaml
+python/__pycache__/SparkApi.cpython-310.pyc
+python/__pycache__/main.cpython-310.pyc
