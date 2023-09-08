@@ -1,10 +1,10 @@
 ## Running Locally
 
-**1. Clone Repo**
+**1. setup env**
 
-```bash
-git clone https://github.com/hhxuliang123/llmchat
-```
+[nodejs 18.17.1](https://nodejs.org/en/download)
+
+[Python 3.11.5](https://www.python.org/downloads)
 
 **2. Install Dependencies**
 
@@ -12,29 +12,7 @@ git clone https://github.com/hhxuliang123/llmchat
 npm i
 ```
 
-**3. Provide OpenAI API Key**
-
-Create a .env.local file in the root of the repo with your OpenAI API Key:
-
-```bash
-OPENAI_API_KEY=YOUR_KEY
-```
-
-> You can set `OPENAI_API_HOST` where access to the official OpenAI host is restricted or unavailable, allowing users to configure an alternative host for their specific needs.
-
-> Additionally, if you have multiple OpenAI Organizations, you can set `OPENAI_ORGANIZATION` to specify one.
-
-**4. Run App**
-
-```bash
-npm run dev
-```
-
-**5. Use It**
-
-You should be able to start chatting.
-
-## Configuration
+**3. Provide LLM API Keys**
 
 When deploying the application, the following environment variables can be set:
 
@@ -51,8 +29,19 @@ When deploying the application, the following environment variables can be set:
 | NEXT_PUBLIC_DEFAULT_TEMPERATURE   | 1                              | The default temperature to use on new conversations                                                                                       |
 | GOOGLE_API_KEY                    |                                | See [Custom Search JSON API documentation][GCSE]                                                                                          |
 | GOOGLE_CSE_ID                     |                                | See [Custom Search JSON API documentation][GCSE]                                                                                          |
+| ZHIPU_API_KEY                     | zhipuAI token                  |                                                                                                 |
+| MAIL_PASSWORD                     |||
+| SPARK_APPID                       | spark appid||
+| SPARK_API_KEY                     | spark api key||
+| SPARK_API_SECRET                  | spark api secret||
 
-If you do not provide an OpenAI API key with `OPENAI_API_KEY`, users will have to provide their own key.
 
-If you don't have an OpenAI API key, you can get one [here](https://platform.openai.com/account/api-keys).
+**4. Run App**
 
+```bash
+npm run dev
+```
+
+**5. Use It**
+
+You should be able to start chatting.

@@ -130,7 +130,7 @@ export const SparkStream = async (
   max_length: number,
 ) => {
   // streamed response
-  const url = "http://172.16.1.68:11223/spark/stream";
+  const url = "http://127.0.0.1:11223/spark/stream";
   const response = await fetch(url, {
     method: 'POST',
     body: JSON.stringify({
