@@ -9,7 +9,8 @@ import wasm from '../../node_modules/@dqbd/tiktoken/lite/tiktoken_bg.wasm?module
 import tiktokenModel from '@dqbd/tiktoken/encoders/cl100k_base.json';
 import { Tiktoken, init } from '@dqbd/tiktoken/lite/init';
 import { PluginID } from '@/types/plugin';
-
+import cookie from 'cookie';
+import crypto from 'crypto';
 export const config = {
   runtime: 'edge',
 };
@@ -17,6 +18,9 @@ export const config = {
 const handler = async (req: Request): Promise<Response> => {
   try {
     const { model, messages, key, prompt, temperature, knowledge } = (await req.json()) as ChatBody;
+
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const myCookie = cookies.my_cookie;
 
     await init((imports) => WebAssembly.instantiate(wasm, imports));
     const encoding = new Tiktoken(
