@@ -75,10 +75,10 @@ const Login = ({ onLogin }) => {
             role="dialog"
           >
             <div className="text-sm font-bold text-black dark:text-neutral-200">
-              {'Username'}
+              {'User'}
             </div>
             <div className="w-full rounded-lg border border-neutral-200 bg-transparent pr-2 text-neutral-900 dark:border-neutral-600 dark:text-white">
-              <input className="w-full bg-transparent p-2" placeholder={'Username'} value={username}
+              <input className="w-full bg-transparent p-2" placeholder={'User Name'} value={username}
               onChange={e => setUsername(e.target.value)}
                 >
                   
@@ -88,7 +88,7 @@ const Login = ({ onLogin }) => {
               {'Password'}
             </div>
             <div className="w-full rounded-lg border border-neutral-200 bg-transparent pr-2 text-neutral-900 dark:border-neutral-600 dark:text-white">
-              <input className="w-full bg-transparent p-2" placeholder={'Password'} value={password} type="password"
+              <input className="w-full bg-transparent p-2" placeholder={'Pass Word'} value={password} type="password"
               onChange={e => setPassword(e.target.value)}
               >
                   

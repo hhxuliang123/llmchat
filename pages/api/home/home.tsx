@@ -41,6 +41,8 @@ import { HomeInitialState, initialState } from './home.state';
 
 import { v4 as uuidv4 } from 'uuid';
 import Login from './login'; 
+import Cookies from 'js-cookie';  // 如果你使用的是 `js-cookie`库
+
 
 
 interface Props {
@@ -349,7 +351,23 @@ const Home = ({
     serverSidePluginKeysSet,
   ]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const cookie = Cookies.get('perfectek_ai_auth');
+  
+  // 检查cookie的副作用 
+  useEffect(() => {
+    const checkCookie = () => {
+      // 你想检查的cookie名称，请根据实际情况修改
+      const cookie = Cookies.get('perfectek_ai_auth');
+      if (cookie) {
+       setIsLoggedIn(true);
+      } else {
+       setIsLoggedIn(false);
+      }   
+    };
 
+    checkCookie();
+  }, []); // 空依赖数组使得这个副作用仅在组件挂载和卸载时运行。
+  
   if(!isLoggedIn) {
     return <Login onLogin={() => setIsLoggedIn(true)} />
   }

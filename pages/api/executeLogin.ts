@@ -1,3 +1,4 @@
+import { serialize } from 'cookie';
 import { NextApiRequest, NextApiResponse } from 'next';
 import employees, { Employee } from '@/users';
 
@@ -11,10 +12,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
   const employee : Employee = employees.find(emp => emp.userid === username);
     
   // 检查是否找到用户且密码是否匹配
+
   if (employee && employee.password === password) {
-    res.status(200).end('');
+    const now = Date.now();
+    const cookie = serialize('perfectek_ai_auth', `${username}:${password}:${now}`, {
+      maxAge: 60 * 60 * 24 * 2,
+      path: '/',
+      });
+    res.setHeader('Set-Cookie', cookie);
+
+    res.status(200).json({ status: 'Logged in' });
   }else{
-    res.status(500).end('username/password error!');
+    res.status(401).json({ status: 'Invalid username/password' });
   }
 };
 
