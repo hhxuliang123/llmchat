@@ -520,11 +520,11 @@ export const check_issue = async (
 
   console.log('----------------------------------***')
   const data = await response.json();
-  console.log(data)
+  //console.log(data)
   const contextData = data?.context;
 
   const answerPrompt = endent`
-  根据下面的已知信息，简洁和专业的来回答用户问题。如果无法从中得到答案，请说 “根据已知信息无法回答该问题” 或 “没有提供足够的相关信息”，不允许在答案中添加编造成分，答案请使用中文。
+  下面是一些已知参考信息， 请尽量根据这些已知信息来回答后面的问题。
 
   用户问题:
   ${message}
@@ -594,7 +594,7 @@ export const exe_code = async (
         const rsp = JSON.parse(event.data);
         const msg_type = rsp["msg_type"];
         if (msg_type === "stream") {
-          console.log(rsp["content"]["text"]);
+          //console.log(rsp["content"]["text"]);
           resolve(rsp["content"]["text"]);
           ws.close();
         }
@@ -614,10 +614,10 @@ export const exe_code = async (
   
   // 使用这个函数的方式：
   waitForMessage().then(result_str => {
-    console.log('Received message:', result_str);
+    //console.log('Received message:', result_str);
     
   }).catch(error => {
-    console.error('Error:', error);
+    //console.error('Error:', error);
   });
   
   

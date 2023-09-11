@@ -62,13 +62,14 @@ export const Plugins: Record<PluginID, Plugin> = {
     requiredKeys: [
     ],
   },
+  /*
   [PluginID.MAIL]: {
     id: PluginID.MAIL,
     name: PluginName.MAIL,
     requiredKeys: [
     ],
   },
-  
+  */
   [PluginID.FILE]: {
     id: PluginID.FILE,
     name: PluginName.FILE,

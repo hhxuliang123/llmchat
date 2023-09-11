@@ -40,6 +40,8 @@ import HomeContext from './home.context';
 import { HomeInitialState, initialState } from './home.state';
 
 import { v4 as uuidv4 } from 'uuid';
+import Login from './login'; 
+
 
 interface Props {
   serverSideApiKeyIsSet: boolean;
@@ -346,6 +348,11 @@ const Home = ({
     serverSideApiKeyIsSet,
     serverSidePluginKeysSet,
   ]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  if(!isLoggedIn) {
+    return <Login onLogin={() => setIsLoggedIn(true)} />
+  }
 
   return (
     <HomeContext.Provider
@@ -360,7 +367,7 @@ const Home = ({
       }}
     >
       <Head>
-        <title>Chatbot UI</title>
+        <title>Perfectek Chat</title>
         <meta name="description" content="ChatGPT but better." />
         <meta
           name="viewport"

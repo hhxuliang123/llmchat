@@ -56,17 +56,17 @@ const handler = async (req: Request): Promise<Response> => {
     console.log((new Date()).toString())
     console.log(model['id'])
     console.log('^^^^^^^^^^^^^^^^^^^^')
-    console.log(messages)
+    //console.log(messages)
     console.log('==================================')
     let stream = null;
     let msg = messagesToSend[messagesToSend.length-1].content.trim();
-    console.log(knowledge);
+    //console.log(knowledge);
     if(model['id'] !== 'google'){
       if(knowledge.id === PluginID.CHECK_LIST){        
           const context_msg = await check_issue('sys_check',msg);
           messagesToSend[messagesToSend.length-1].content = context_msg;
-          console.log('CCCCCCCCCCCCCCCCCCCCC')
-          console.log(messagesToSend)
+          //console.log('CCCCCCCCCCCCCCCCCCCCC')
+          //console.log(messagesToSend)
         
       }
       if(knowledge.id === PluginID.TC){        
@@ -88,20 +88,20 @@ const handler = async (req: Request): Promise<Response> => {
 测试表单信息主要完成被测试DUT基本信息、所用测试仪器信息、DUT和测试仪器之间的连接关系等测试关键数据。请认真准确填写，如果有不清晰的请保持其值为空。请用markdown格式回答。`;
         messagesToSend[messagesToSend.length-1].content = context_msg;
         console.log('CCCCCCCCCCCCCCCCCCCCC')
-        console.log(messagesToSend)
+        //console.log(messagesToSend)
       }
       if(knowledge.id === PluginID.FILE){        
         const context_msg = await check_issue(knowledge.requiredKeys[0].value,msg);
         messagesToSend[messagesToSend.length-1].content = context_msg;
         console.log('FFFFFFFFFFFFFFFFFFFFFFFFFF')
-        console.log(messagesToSend)
+        //console.log(messagesToSend)
       
       }
       if(knowledge.id === PluginID.GOOGLE_SEARCH){
           const google_msg = await google_tool(msg);
           messagesToSend = [{ role: 'user', content: google_msg }];
           console.log('GGGGGGGGGGGGGGGGGGGGGGGGGGG')
-          console.log(messagesToSend)        
+          //console.log(messagesToSend)        
       }
       if(knowledge.id === PluginID.MAIL){
         promptToSend = endent`你现在是一名邮件整理人员，请根据我的要求整理邮件。如果需要生成回复邮件，请按照后面的邮件模板生成。模板中的## INNER_MAIL_ACTION_START和## INNER_MAIL_ACTION_END是标记，务必完成输出。
@@ -121,7 +121,7 @@ const handler = async (req: Request): Promise<Response> => {
         const mail_msg = await receive_mail(msg);
         messagesToSend = [{ role: 'user', content: mail_msg }];
         console.log('MMMMMMMMMMMMMMMMMMMMMMMMM')
-        console.log(messagesToSend)        
+        //console.log(messagesToSend)        
       }
     }
     
