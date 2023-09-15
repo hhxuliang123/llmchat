@@ -89,6 +89,26 @@ async def stablediffusion(request: Request):
     except Exception as e:
         print(f"Error: {e}")  # For logging purposes
         return {"Error": str(e)}
+    
+import asyncio
+@app.post("/aliaudio")
+async def txtaudio(request: Request):
+    try:
+        json_post_raw = await request.json()
+        prompt = json_post_raw.get('content')
+        import hashlib
+        hash_object = hashlib.md5(prompt.encode())
+        md5_hash = hash_object.hexdigest()
+        file_name = f"{md5_hash}.wav"
+        if not os.path.exists(f"files/{file_name}"):
+            print("call AI")
+            loop = asyncio.get_running_loop()
+            result = await loop.run_in_executor(None, QianWen.audio_by_txt, prompt, file_name)
+        return {"filename":file_name}
+        
+    except Exception as e:
+        print(f"Error: {e}")  # For logging purposes
+        return {"Error": str(e)}
 
 
 @app.get("/files/{file_path:path}")

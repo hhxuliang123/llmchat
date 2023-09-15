@@ -6,6 +6,7 @@ import {
   IconTrash,
   IconUser,
   IconRun,
+  IconDeviceSpeaker,
 } from '@tabler/icons-react';
 import { FC, memo, useContext, useEffect, useRef, useState } from 'react';
 
@@ -126,6 +127,34 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
     );
     homeDispatch({ field: 'selectedConversation', value: single });
     homeDispatch({ field: 'conversations', value: all });
+  };
+  
+  const soundOnClick = () => {
+    fetch('api/audiomsg', {
+        method: 'POST',
+        body: JSON.stringify({content: message.content})
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('请求服务失败'); // 抛出自定义的错误
+      }
+    })
+    .then(data => {
+      // 用你的音频文件URL替换这个URL
+      const audioUrl = `api/showfile?fileName=${data.filename}`;
+      
+      // 创建一个Audio对象
+      const audio = new Audio(audioUrl);
+
+      // 播放音频
+      audio.play();
+    })
+    .catch((error) => {
+        alert('audio错误');
+        console.error('Error:', error);
+    });
   };
 
   const copyOnClick = () => {
@@ -342,6 +371,12 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                     <IconCopy size={20} />
                   </button>
                 )}
+                <button
+                  className="invisible group-hover:visible focus:visible text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                  onClick={soundOnClick}
+                >
+                  <IconDeviceSpeaker size={20} />
+                </button>
               </div>
             </div>
           )}

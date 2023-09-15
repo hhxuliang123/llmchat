@@ -4,6 +4,7 @@ from urllib.parse import urlparse, unquote
 from pathlib import PurePosixPath
 import requests
 from dashscope import ImageSynthesis
+from dashscope.audio.tts import SpeechSynthesizer
 
 model = "stable-diffusion-v1.5"
 
@@ -50,7 +51,7 @@ def sample_block_call(prompt = "Eagle flying freely in the blue sky and white cl
               (rsp.status_code, rsp.code, rsp.message))
 
 
-def sample_async_call(prompt = "Eagle flying freely in the blue sky and white clouds"):
+def sample_async_call(prompt):
     rsp = ImageSynthesis.async_call(model=model,
                                     prompt=prompt,
                                     negative_prompt="garfield",
@@ -69,6 +70,17 @@ def sample_async_call(prompt = "Eagle flying freely in the blue sky and white cl
 
     # 返回成功的结果。这部分需要根据实际的 rsp 结果进行调整。
     return {'result': rsp.output}
+
+
+def audio_by_txt(txt,filename):
+    result = SpeechSynthesizer.call(model='sambert-zhichu-v1',
+                                    text=txt,
+                                    sample_rate=48000,
+                                    format='wav')
+
+    if result.get_audio_data() is not None:
+        with open(f"files/{filename}", 'wb') as f:
+            f.write(result.get_audio_data())
 
 
 if __name__ == '__main__':

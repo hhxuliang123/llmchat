@@ -44,3 +44,4 @@ users.ts
 zhipu_jwt.py
 python/__pycache__/QianWen.cpython-310.pyc
 python/files/*
+python/set_env.bat
