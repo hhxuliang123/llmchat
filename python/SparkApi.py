@@ -13,6 +13,7 @@ from wsgiref.handlers import format_date_time
 import time 
 import websocket
 import threading
+import os
 
 class Ws_Param(object):
     # 初始化
@@ -123,8 +124,12 @@ def run_ws(ws,*args):
     ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
     
 
-def chat_question(appid, api_key, api_secret, gpt_url, question):
-    wsParam = Ws_Param(appid, api_key, api_secret, gpt_url)
+def chat_question(question):
+    appid = os.environ.get('SPARK_APPID')
+    api_key = os.environ.get('SPARK_API_KEY')
+    api_secret = os.environ.get('SPARK_API_SECRET')
+
+    wsParam = Ws_Param(appid, api_key, api_secret, "ws://spark-api.xf-yun.com/v1.1/chat")
     websocket.enableTrace(False)
     wsUrl = wsParam.create_url()
     ws = websocket.WebSocketApp(wsUrl, on_message=on_message, on_error=on_error, on_close=on_close, on_open=on_open)

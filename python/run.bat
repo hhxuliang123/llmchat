@@ -1,1 +1,3 @@
-python -m uvicorn main:app --host 172.16.1.68  --port 11223
+call set_env.bat
+
+python3 -m uvicorn main:app --host 0.0.0.0  --port 11223

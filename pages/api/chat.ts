@@ -1,5 +1,5 @@
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
-import { OpenAIError, OpenAIStream, Chatgml6Stream, googleStream, ZhipuAIStream, google_tool, check_issue, testcase, receive_mail,SparkStream } from '@/utils/server';
+import { OpenAIError, OpenAIStream, Chatgml6Stream, googleStream, ZhipuAIStream, google_tool, check_issue, testcase, receive_mail,SparkStream, ChatAIStream } from '@/utils/server';
 import endent from 'endent';
 import { ChatBody, Message } from '@/types/chat';
 
@@ -140,6 +140,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
     if (model['id'] == 'zhipu') {
         stream = await ZhipuAIStream(messagesToSend, 0.7, temperatureToUse, 32000);
+    }
+    if (model['id'] == 'qwen-turbo' || model['id'] == 'qwen-plus') {
+      stream = await ChatAIStream(model['id'],messagesToSend, 0.7, temperatureToUse, 32000);
     }
     if (model['id'] == 'google') {
         stream = await googleStream(messages[messages.length-1].content);

@@ -71,11 +71,13 @@ const handler_old = async (req: Request): Promise<Response> => {
 
 const handler = async (req: Request): Promise<Response> => {
   return new Response(JSON.stringify([
-    { id: 'chatglm6', name: 'ChatGLM2-6B'},
-    { id: 'gpt-3.5-turbo', name: 'GPT-3.5'},
-    { id: 'gpt-4', name: 'GPT-4'},
-    { id: 'spark', name: 'Spark'},
-    { id: 'zhipu', name: 'ZhipuAI'},
+    { id: 'gpt-3.5-turbo', name: 'chatGPT-3.5'},
+    { id: 'gpt-4', name: 'chatGPT-4'},
+    { id: 'chatglm6', name: '普太AI(ChatGLM2-6B)'},
+    { id: 'spark', name: '讯飞星火'},
+    { id: 'zhipu', name: '智谱清言'},
+    { id: 'qwen-turbo', name: '通义千问 turbo'},
+    { id: 'qwen-plus', name: '通义千问 plus'},
     { id: 'google', name: 'Google Search'}
   ]), { status: 200 });
 }

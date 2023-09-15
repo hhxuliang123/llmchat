@@ -49,7 +49,9 @@ const Login = ({ onLogin }) => {
       handleLogin(e);
     }
   };
+  const handleGetLoginCode = (event) => {
 
+  };
   const handleLogin = (event) => {
     setLoading(true);
     seterrorinfo('');
@@ -75,7 +77,7 @@ const Login = ({ onLogin }) => {
             role="dialog"
           >
             <div className="text-sm font-bold text-black dark:text-neutral-200">
-              {'User'}
+              {'Mobile Phone Number'}
             </div>
             <div className="w-full rounded-lg border border-neutral-200 bg-transparent pr-2 text-neutral-900 dark:border-neutral-600 dark:text-white">
               <input className="w-full bg-transparent p-2" placeholder={'User Name'} value={username}
@@ -85,17 +87,21 @@ const Login = ({ onLogin }) => {
               </input>
             </div>
             <div className="text-sm font-bold text-black dark:text-neutral-200">
-              {'Password'}
+              {'Password or Verification Code'}
             </div>
             <div className="w-full rounded-lg border border-neutral-200 bg-transparent pr-2 text-neutral-900 dark:border-neutral-600 dark:text-white">
-              <input className="w-full bg-transparent p-2" placeholder={'Pass Word'} value={password} type="password"
+              <input className="w-full bg-transparent p-2" placeholder={'Password or Code'} value={password} type="password"
               onChange={e => setPassword(e.target.value)}
               >
                   
               </input>
             </div>
-            
 
+      
+            <button className="text-sm right text-black dark:text-neutral-200 hidden" onClick={handleGetLoginCode}>
+              {'Get Code'}
+            </button>
+            
             <button
               type="button"
               className="w-full px-4 py-2 mt-6 border rounded-lg shadow border-neutral-500 text-neutral-900 hover:bg-neutral-100 focus:outline-none dark:border-neutral-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-300"

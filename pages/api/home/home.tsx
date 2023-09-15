@@ -41,7 +41,6 @@ import { HomeInitialState, initialState } from './home.state';
 
 import { v4 as uuidv4 } from 'uuid';
 import Login from './login'; 
-import Cookies from 'js-cookie';  // 如果你使用的是 `js-cookie`库
 
 
 
@@ -49,18 +48,20 @@ interface Props {
   serverSideApiKeyIsSet: boolean;
   serverSidePluginKeysSet: boolean;
   defaultModelId: OpenAIModelID;
+  mycookie: string;
 }
 
 const Home = ({
   serverSideApiKeyIsSet,
   serverSidePluginKeysSet,
   defaultModelId,
+  mycookie,
 }: Props) => {
   const { t } = useTranslation('chat');
   const { getModels } = useApiService();
   const { getModelsError } = useErrorService();
   const [initialRender, setInitialRender] = useState<boolean>(true);
-
+  
   const contextValue = useCreateReducer<HomeInitialState>({
     initialState,
   });
@@ -349,16 +350,14 @@ const Home = ({
     dispatch,
     serverSideApiKeyIsSet,
     serverSidePluginKeysSet,
-  ]);
+    ]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const cookie = Cookies.get('perfectek_ai_auth');
   
   // 检查cookie的副作用 
   useEffect(() => {
     const checkCookie = () => {
       // 你想检查的cookie名称，请根据实际情况修改
-      const cookie = Cookies.get('perfectek_ai_auth');
-      if (cookie) {
+      if ((Date.now() - Number(mycookie.split(':')[2])) < (1000 * 60 * 60 * 24 * 4)) {
        setIsLoggedIn(true);
       } else {
        setIsLoggedIn(false);
@@ -420,7 +419,29 @@ const Home = ({
 };
 export default Home;
 
-export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { locale } = context;
+  const COOKIE = require('cookie');
+  let decrypt_cookie = '';
+  let mycookie = '';
+  function decrypt(hash) {
+    const crypto = require('crypto');
+    const algorithm = 'aes-256-cbc';
+    const secretKey = 'vOVH6sdmpNWjRRIqCc7rdxs01lwHzfr3';
+    const iv = Buffer.from(hash.iv, 'hex');
+    const encryptedText = Buffer.from(hash.content, 'hex');
+
+    const decipher = crypto.createDecipheriv(algorithm, secretKey, iv);
+    const decrypted = Buffer.concat([decipher.update(encryptedText), decipher.final()]);
+
+    return decrypted.toString();
+  }
+  try{
+    // Extract cookies from request headers
+    decrypt_cookie = JSON.parse(COOKIE.parse(context.req.headers.cookie)['perfectek_ai_auth']);
+    mycookie = decrypt(decrypt_cookie);
+  }catch(e){}
+  
   const defaultModelId =
     (process.env.DEFAULT_MODEL &&
       Object.values(OpenAIModelID).includes(
@@ -437,12 +458,13 @@ export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
   if (googleApiKey && googleCSEId) {
     serverSidePluginKeysSet = true;
   }
-
+  
   return {
     props: {
       serverSideApiKeyIsSet: !!process.env.OPENAI_API_KEY,
       defaultModelId,
       serverSidePluginKeysSet,
+      mycookie,
       ...(await serverSideTranslations(locale ?? 'en', [
         'common',
         'chat',

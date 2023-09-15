@@ -122,6 +122,56 @@ export const OpenAIStream = async (
   return stream;
 };
 
+export const ChatAIStream = async (
+  llm_type: string,
+  messages: Message[],
+  top_p: number,
+  temperature: number,
+  max_length: number,
+) => {
+  // streamed response
+  const url = "http://127.0.0.1:11223/qianwen/stream";
+  const response = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      prompt: messages,
+      top_p: top_p,
+      temperature: temperature,
+      max_length: max_length,
+      llm_type: llm_type,
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  //@ts-ignore
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  const convertToReadableStream = async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if(value){
+              controller.enqueue(value);
+            }
+            if (done) {
+              controller.close();
+              return;
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+      },
+    });
+
+    return stream;
+  };
+
+  return await convertToReadableStream(reader);
+};
 
 export const SparkStream = async (
   messages: Message[],
@@ -138,9 +188,6 @@ export const SparkStream = async (
       top_p: top_p,
       temperature: temperature,
       max_length: max_length,
-      appid: process.env.SPARK_APPID,
-      api_key: process.env.SPARK_API_KEY,
-      api_secret: process.env.SPARK_API_SECRET,
     }),
     headers: {
       'Content-Type': 'application/json'
