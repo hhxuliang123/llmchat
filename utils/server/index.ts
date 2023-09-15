@@ -122,6 +122,25 @@ export const OpenAIStream = async (
   return stream;
 };
 
+export const StableDiffusion = async (
+  messages: Message[],
+) => {
+  // streamed response
+  const url = "http://127.0.0.1:11223/stablediffusion";
+  const response = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      prompt: messages[messages.length-1].content,
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  //@ts-ignore
+  const data = await response.json();
+  return data
+};
+
 export const ChatAIStream = async (
   llm_type: string,
   messages: Message[],
