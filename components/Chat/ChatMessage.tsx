@@ -7,6 +7,7 @@ import {
   IconUser,
   IconRun,
   IconDeviceSpeaker,
+  IconDeviceSpeakerOff,
 } from '@tabler/icons-react';
 import { FC, memo, useContext, useEffect, useRef, useState } from 'react';
 
@@ -44,9 +45,20 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [messageContent, setMessageContent] = useState(message.content);
   const [messagedCopied, setMessageCopied] = useState(false);
-  
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [messagedAudio, setMessageAudio] = useState(false);
+  const [messagedAudioDownload, setMessageAudioDownload] = useState(false);
+  const [globalAudio, setglobalAudio] = useState(new Audio());
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  const onAudioEnded = () => {
+    // 这是在音频播放结束后要执行的方法
+    setMessageAudio(false);
+    setMessageAudioDownload(false);
+  };
+  
+  globalAudio.addEventListener('ended', onAudioEnded);
+  
   const toggleEditing = () => {
     setIsEditing(!isEditing);
   };
@@ -128,8 +140,9 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
     homeDispatch({ field: 'selectedConversation', value: single });
     homeDispatch({ field: 'conversations', value: all });
   };
-  
+
   const soundOnClick = () => {
+    setMessageAudioDownload(true);
     fetch('api/audiomsg', {
         method: 'POST',
         body: JSON.stringify({content: message.content})
@@ -143,18 +156,31 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
     })
     .then(data => {
       // 用你的音频文件URL替换这个URL
+      setMessageAudioDownload(false);
+      setMessageAudio(true);
+    
       const audioUrl = `api/showfile?fileName=${data.filename}`;
-      
-      // 创建一个Audio对象
-      const audio = new Audio(audioUrl);
+      // 如果全局音频对象正在播放，则停止音频
+      if (!globalAudio.paused) {
+        globalAudio.pause();
+      }
 
-      // 播放音频
-      audio.play();
+      // 设置音频源并播放
+      globalAudio.src = audioUrl;
+      globalAudio.play();
     })
     .catch((error) => {
+        setMessageAudio(false);
+        setMessageAudioDownload(false);
         alert('audio错误');
         console.error('Error:', error);
     });
+  };
+  const soundOffClick = () => {
+    setMessageAudio(false);
+    setMessageAudioDownload(false);
+    globalAudio.pause();
+    globalAudio.src = ''; 
   };
 
   const copyOnClick = () => {
@@ -371,12 +397,24 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                     <IconCopy size={20} />
                   </button>
                 )}
-                <button
-                  className="invisible group-hover:visible focus:visible text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                  onClick={soundOnClick}
+                {messagedAudioDownload ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-t-2 border-neutral-800 opacity-60 dark:border-neutral-100"></div>
+                ) : (
+                  messagedAudio ? (
+                  <button
+                  className="text-green-500 dark:text-green-400"
+                  onClick={soundOffClick}
                 >
-                  <IconDeviceSpeaker size={20} />
+                  <IconDeviceSpeakerOff size={20} />
                 </button>
+                ) : (
+                  <button
+                    className="invisible group-hover:visible focus:visible text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    onClick={soundOnClick}
+                  >
+                    <IconDeviceSpeaker size={20} />
+                  </button>
+                ))}
               </div>
             </div>
           )}
