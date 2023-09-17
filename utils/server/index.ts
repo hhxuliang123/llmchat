@@ -125,12 +125,33 @@ export const OpenAIStream = async (
 export const StableDiffusion = async (
   messages: Message[],
 ) => {
-  // streamed response
-  const url = "http://127.0.0.1:11223/stablediffusion";
-  const response = await fetch(url, {
+  //translate to english
+  console.log(messages[messages.length-1].content);
+  let url = "http://172.16.6.11:8000";
+  let response = await fetch(url, {
     method: 'POST',
     body: JSON.stringify({
-      prompt: messages[messages.length-1].content,
+      prompt: `将下面的内容翻译成英文：\n    ${messages[messages.length-1].content}`,
+      top_p: 0.3,
+      temperature: 0.3,
+      max_length: 8000,
+      history: [],
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  //@ts-ignore
+  const en_str = await response.json();
+  const cmd = en_str.response;
+  console.log(cmd);
+  
+  // streamed response
+  url = "http://127.0.0.1:11223/stablediffusion";
+  response = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      prompt: cmd,
     }),
     headers: {
       'Content-Type': 'application/json'
