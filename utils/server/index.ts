@@ -30,6 +30,8 @@ export class OpenAIError extends Error {
 }
 
 export const OpenAIStream = async (
+  audio_gen: boolean,
+  cookie_id: string,
   model: OpenAIModel,
   systemPrompt: string,
   temperature : number,
@@ -163,6 +165,8 @@ export const StableDiffusion = async (
 };
 
 export const ChatAIStream = async (
+  audio_gen: boolean,
+  cookie_id: string,
   llm_type: string,
   messages: Message[],
   top_p: number,
@@ -214,6 +218,8 @@ export const ChatAIStream = async (
 };
 
 export const SparkStream = async (
+  audio_gen: boolean,
+  cookie_id: string,
   messages: Message[],
   top_p: number,
   temperature: number,
@@ -262,7 +268,33 @@ export const SparkStream = async (
   return await convertToReadableStream(reader);
 };
 
+function processValue(cookie_id: string ,tstr: string, ret_str: string, all_mesg: boolean): string {
+  let au_s = '';
+  if (all_mesg){
+    au_s = ret_str;
+  } else if (tstr.includes('。')) {
+    au_s = ret_str.slice(0, 1 + ret_str.lastIndexOf('。'));
+  }
+
+  if(au_s !== '') {
+      fetch("http://127.0.0.1:11223/audio_txt", {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({content: au_s, id: cookie_id})
+      });
+
+      if (tstr.includes('。')){
+        ret_str = ret_str.slice(1 + ret_str.lastIndexOf('。'));
+      }
+      console.log(au_s);
+      console.log(ret_str);
+  }
+  return ret_str;
+}
+
 export const Chatgml6Stream = async (
+  audio_gen: boolean,
+  cookie_id: string,
   messages: Message[],
   top_p: number,
   temperature: number,
@@ -296,6 +328,9 @@ export const Chatgml6Stream = async (
   //@ts-ignore
   const reader = response.body.getReader();
   const decoder = new TextDecoder('utf-8');
+  let ret_str = '';
+  let clear_audio = true;
+
   const convertToReadableStream = async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
     const stream = new ReadableStream({
       async start(controller) {
@@ -304,8 +339,17 @@ export const Chatgml6Stream = async (
             const { done, value } = await reader.read();
             if(value){
               controller.enqueue(value);
+              if (audio_gen){
+                const tstr = decoder.decode(value);
+                ret_str += tstr;
+                ret_str = processValue(cookie_id,tstr, ret_str, false);
+                clear_audio = false;
+              }
             }
             if (done) {
+              if (audio_gen){
+                ret_str = processValue(cookie_id,'', ret_str, true);
+              }
               controller.close();
               return;
             }
@@ -357,6 +401,8 @@ export const googleStream = async (
 };
 
 export const ZhipuAIStream = async (
+  audio_gen: boolean,
+  cookie_id: string,
   messages: Message[],
   top_p: number,
   temperature: number,

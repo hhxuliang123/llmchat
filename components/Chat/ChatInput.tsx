@@ -9,6 +9,8 @@ import {
   IconFileText,
   IconForms,
   IconMail,
+  IconDeviceSpeaker,
+  IconDeviceSpeakerOff,
 } from '@tabler/icons-react';
 import {
   KeyboardEvent,
@@ -37,6 +39,7 @@ interface Props {
   onRegenerate: (plugin: Plugin | null) => void;
   onScrollDownClick: () => void;
   stopConversationRef: MutableRefObject<boolean>;
+  onAudio: (status: boolean) => void;
   textareaRef: MutableRefObject<HTMLTextAreaElement | null>;
   showScrollDownButton: boolean;
 }
@@ -46,6 +49,7 @@ export const ChatInput = ({
   onRegenerate,
   onScrollDownClick,
   stopConversationRef,
+  onAudio,
   textareaRef,
   showScrollDownButton,
 }: Props) => {
@@ -67,7 +71,8 @@ export const ChatInput = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showPluginSelect, setShowPluginSelect] = useState(false);
   const [plugin, setPlugin] = useState<Plugin | null>(null);
-
+  const [messagedAudio, setMessageAudio] = useState(false);
+  const [globalAudio, setglobalAudio] = useState(new Audio());
   const promptListRef = useRef<HTMLUListElement | null>(null);
 
   const filteredPrompts = prompts.filter((prompt) =>
@@ -265,6 +270,36 @@ export const ChatInput = ({
     };
   }, []);
 
+  const soundOnClick = () => {
+    const audioUrl = `api/audiomsggenstream`;
+    
+    fetch(audioUrl, {method: 'DELETE'});
+    setMessageAudio(true);
+    
+    //const audioUrl = 'http://127.0.0.1:11223/audio/112233445566';
+    // 如果全局音频对象正在播放，则停止音频
+    if (!globalAudio.paused) {
+      globalAudio.pause();
+      globalAudio.src = ''; 
+    }
+    onAudio(true);
+    // 设置音频源并播放
+    globalAudio.src = audioUrl;
+    globalAudio.play();
+  
+  };
+
+  const soundOffClick = () => {
+    const audioUrl = `api/audiomsggenstream`;
+    //const audioUrl = 'http://127.0.0.1:11223/audio/112233445566';
+    setMessageAudio(false);
+    onAudio(false);
+    globalAudio.pause();
+    globalAudio.src = ''; 
+    fetch(audioUrl, {
+      method: 'DELETE'
+    });
+  };
   return (
     <div className="absolute bottom-0 left-0 w-full border-transparent bg-gradient-to-b from-transparent via-white to-white pt-6 dark:border-white/20 dark:via-[#343541] dark:to-[#343541] md:pt-2">
       <div className="stretch mx-2 mt-4 flex flex-row gap-3 last:mb-2 md:mx-4 md:mt-[52px] md:last:mb-6 lg:mx-auto lg:max-w-3xl">
@@ -427,6 +462,25 @@ export const ChatInput = ({
                 onClick={onScrollDownClick}
               >
                 <IconArrowDown size={18} />
+              </button>
+            </div>
+          )}
+          {messagedAudio ? (
+            <div className="absolute bottom-12 right-0 lg:bottom-0 lg:-right-10">
+              <button
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700  text-green-500 dark:text-green-400"
+                onClick={soundOffClick}
+              >
+                <IconDeviceSpeakerOff size={18} />
+              </button>
+            </div>
+          ) : (
+            <div className="absolute bottom-12 right-0 lg:bottom-0 lg:-right-10">
+              <button
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-300 text-gray-800 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-neutral-200"
+                onClick={soundOnClick}
+              >
+                <IconDeviceSpeaker size={18} />
               </button>
             </div>
           )}

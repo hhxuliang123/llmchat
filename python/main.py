@@ -5,9 +5,26 @@ from fastapi.responses import FileResponse
 import json
 import QianWen
 import requests,os,time
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+app.add_middleware(
+ CORSMiddleware,
+ # 允许跨域的源列表，例如 ["http://www.example.org"] 等等，["*"] 表示允许任何源
+ allow_origins=["*"],
+ # 跨域请求是否支持 cookie，默认是 False，如果为 True，allow_origins 必须为具体的源，不可以是 ["*"]
+ allow_credentials=False,
+ # 允许跨域请求的 HTTP 方法列表，默认是 ["GET"]
+ allow_methods=["*"],
+ # 允许跨域请求的 HTTP 请求头列表，默认是 []，可以使用 ["*"] 表示允许所有的请求头
+ # 当然 Accept、Accept-Language、Content-Language 以及 Content-Type 总之被允许的
+ allow_headers=["*"],
+ # 可以被浏览器访问的响应头, 默认是 []，一般很少指定
+ # expose_headers=["*"]
+ # 设定浏览器缓存 CORS 响应的最长时间，单位是秒。默认为 600，一般也很少指定
+ # max_age=1000
+)
 
 
 @app.post("/spark/stream")
@@ -114,3 +131,91 @@ async def txtaudio(request: Request):
 @app.get("/files/{file_path:path}")
 async def read_file(file_path: str):
     return FileResponse(f"files/{file_path}")
+
+
+from queue import Queue, Empty
+import asyncio
+buffer_map_lock = asyncio.Lock()
+buffer_map: dict[str, Queue] = {}
+txt_buffer_map = {}
+
+
+import time
+# 这是您的线程函数
+async def manage_txt_buffer_map():
+    while True:
+        is_empty = True
+        for id in list(txt_buffer_map.keys()):  # 安全在字典的时候删除元素
+            async with buffer_map_lock:
+                txt = txt_buffer_map[id].strip()
+                txt_buffer_map[id] = ''
+            if txt != '':
+                print(txt)
+                is_empty = False
+                await asyncio.get_running_loop().run_in_executor(None, QianWen.audio_by_txt_Q, txt, buffer_map[id])
+        if is_empty:
+            await asyncio.sleep(1)  # 如果txt_buffer_map中的内容都是空 那么就等1秒后再循环遍历
+
+
+@app.on_event("startup")
+async def startup_event():
+    app.state.background_task = asyncio.create_task(manage_txt_buffer_map())
+
+@app.post("/audio_txt")
+async def handle_audio_action(request: Request):
+    try:
+        json_post_raw = await request.json()
+        id = json_post_raw.get('id')
+        text = json_post_raw.get('content')
+        if len(text.strip()) != 0 and len(id.strip()) != 0:
+            theQ = None
+            async with buffer_map_lock:
+                if id not in buffer_map:
+                    theQ = Queue()
+                    buffer_map[id] = theQ
+                else:
+                    theQ = buffer_map[id]
+                
+                if id not in txt_buffer_map:
+                    txt_buffer_map[id] = text
+                else:
+                    txt_buffer_map[id] += text
+            return  {"status":"OK"}
+        return {"Error":"invalid params"}
+    except Exception as e:
+        print(f"Error: {e}")  # For logging purposes
+        return {"Error": str(e)}
+    
+@app.delete("/audio/{id}")
+async def handle_end_action(id: str):
+    async with buffer_map_lock:
+        if id in buffer_map:
+            while not buffer_map[id].empty():
+                buffer_map[id].get() # clear the Queue.
+            buffer_map[id].put(None)
+    
+@app.get("/audio/{id}")
+async def audio(id: str):
+    try:
+        async with buffer_map_lock: 
+            if id not in buffer_map:
+                buffer_map[id] = Queue()
+            current_buffer = buffer_map[id]
+            while not current_buffer.empty():
+                current_buffer.get() # clear the Queue.
+            
+        def iter_content():
+            while True:
+                try:
+                    audio_data = current_buffer.get_nowait()
+                    if audio_data is None:
+                        break
+                    yield audio_data
+                except Empty: # Sleep when there's nothing in the queue
+                    time.sleep(1)
+            print(f"Session:{id} audio play loop is end.")
+            yield b''
+        return StreamingResponse(iter_content(), media_type="audio/mpeg")
+    except Exception as e:
+        print(f"Error: {e}")  # For logging purposes
+        return {"Error": str(e)}

@@ -81,8 +81,14 @@ def audio_by_txt(txt,filename):
     if result.get_audio_data() is not None:
         with open(f"files/{filename}", 'wb') as f:
             f.write(result.get_audio_data())
-
-
+    
+def audio_by_txt_Q(txt,Q):
+    result = SpeechSynthesizer.call(model='sambert-zhichu-v1',
+                                    text=txt,
+                                    sample_rate=48000,
+                                    format='wav')
+    Q.put(result.get_audio_data())
+    
 if __name__ == '__main__':
     sample_block_call()
     sample_async_call()

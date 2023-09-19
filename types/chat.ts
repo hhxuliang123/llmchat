@@ -15,6 +15,7 @@ export interface ChatBody {
   prompt: string;
   temperature: number;
   knowledge: Plugin;
+  audio: boolean;
 }
 
 export interface Conversation {

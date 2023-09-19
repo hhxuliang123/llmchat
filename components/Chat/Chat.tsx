@@ -67,6 +67,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [messagedAudio, setMessageAudio] = useState<boolean>(false);
 
   const handleSend = useCallback(
     async (message: Message, deleteCount = 0, plugin: Plugin | null = null) => {
@@ -100,6 +101,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           prompt: updatedConversation.prompt,
           temperature: updatedConversation.temperature,
           knowledge: plugin_null,
+          audio: messagedAudio,
         };
         if (plugin){
           chatBody.knowledge = plugin;
@@ -244,6 +246,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
       pluginKeys,
       selectedConversation,
       stopConversationRef,
+      messagedAudio,
     ],
   );
 
@@ -494,6 +497,9 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
               if (currentMessage) {
                 handleSend(currentMessage, 2, plugin);
               }
+            }}
+            onAudio={(status) => {
+              setMessageAudio(status);
             }}
             showScrollDownButton={showScrollDownButton}
           />
