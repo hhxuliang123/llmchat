@@ -71,7 +71,7 @@ export const ChatInput = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showPluginSelect, setShowPluginSelect] = useState(false);
   const [plugin, setPlugin] = useState<Plugin | null>(null);
-  const [messagedAudio, setMessageAudio] = useState(false);
+  const [messagedAudio, setMessageAudio] = useState(0);
   const [globalAudio, setglobalAudio] = useState(new Audio());
   const promptListRef = useRef<HTMLUListElement | null>(null);
 
@@ -270,12 +270,9 @@ export const ChatInput = ({
     };
   }, []);
 
-  const soundOnClick = () => {
+  const soundOnClick = async () => {
     const audioUrl = `api/audiomsggenstream`;
-    
-    fetch(audioUrl, {method: 'DELETE'});
-    setMessageAudio(true);
-    
+    setMessageAudio(1);
     //const audioUrl = 'http://127.0.0.1:11223/audio/112233445566';
     // 如果全局音频对象正在播放，则停止音频
     if (!globalAudio.paused) {
@@ -283,22 +280,22 @@ export const ChatInput = ({
       globalAudio.src = ''; 
     }
     onAudio(true);
+    await fetch(audioUrl, {method: 'DELETE'});
     // 设置音频源并播放
     globalAudio.src = audioUrl;
     globalAudio.play();
-  
+    setMessageAudio(2);
   };
 
-  const soundOffClick = () => {
+  const soundOffClick = async () => {
+    setMessageAudio(1);
     const audioUrl = `api/audiomsggenstream`;
     //const audioUrl = 'http://127.0.0.1:11223/audio/112233445566';
-    setMessageAudio(false);
     onAudio(false);
     globalAudio.pause();
     globalAudio.src = ''; 
-    fetch(audioUrl, {
-      method: 'DELETE'
-    });
+    await fetch(audioUrl, {method: 'DELETE'});
+    setMessageAudio(0);
   };
   return (
     <div className="absolute bottom-0 left-0 w-full border-transparent bg-gradient-to-b from-transparent via-white to-white pt-6 dark:border-white/20 dark:via-[#343541] dark:to-[#343541] md:pt-2">
@@ -465,7 +462,7 @@ export const ChatInput = ({
               </button>
             </div>
           )}
-          {messagedAudio ? (
+          {messagedAudio == 2 ? (
             <div className="absolute bottom-12 right-0 lg:bottom-0 lg:-right-10">
               <button
                 className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700  text-green-500 dark:text-green-400"
@@ -475,7 +472,7 @@ export const ChatInput = ({
               </button>
             </div>
           ) : (
-            <div className="absolute bottom-12 right-0 lg:bottom-0 lg:-right-10">
+            messagedAudio == 0 ? (<div className="absolute bottom-12 right-0 lg:bottom-0 lg:-right-10">
               <button
                 className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-300 text-gray-800 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-neutral-200"
                 onClick={soundOnClick}
@@ -483,6 +480,11 @@ export const ChatInput = ({
                 <IconDeviceSpeaker size={18} />
               </button>
             </div>
+            ) : (
+              <div className="absolute bottom-12 right-0 lg:bottom-0 lg:-right-10">
+              <div className="flex h-4 w-4 animate-spin rounded-full border-t-2 border-neutral-800 opacity-60 dark:border-neutral-100 "></div>
+              </div>
+            )
           )}
 
           {showPromptList && filteredPrompts.length > 0 && (

@@ -2,10 +2,12 @@
 from fastapi import FastAPI, HTTPException, status, Request
 from fastapi.responses import StreamingResponse
 from fastapi.responses import FileResponse
-import json
-import QianWen
-import requests,os,time
 from fastapi.middleware.cors import CORSMiddleware
+
+import json, os, time, requests, asyncio
+from queue import Queue, Empty
+import QianWen
+import enum
 
 app = FastAPI()
 
@@ -107,7 +109,7 @@ async def stablediffusion(request: Request):
         print(f"Error: {e}")  # For logging purposes
         return {"Error": str(e)}
     
-import asyncio
+
 @app.post("/aliaudio")
 async def txtaudio(request: Request):
     try:
@@ -133,33 +135,65 @@ async def read_file(file_path: str):
     return FileResponse(f"files/{file_path}")
 
 
-from queue import Queue, Empty
-import asyncio
-buffer_map_lock = asyncio.Lock()
-buffer_map: dict[str, Queue] = {}
-txt_buffer_map = {}
 
+## Audio generate 
+class AUDIOSTA(enum.Enum): 
+    INIT = 1
+    AUDIOPLAY = 2
+    AUDIOSTOP = 3
+    
+class AudioGenerator:
+    def __init__(self, text = ''):
+        self.audioQueue = Queue()
+        self.text = text
+        self.status = AUDIOSTA.INIT
 
-import time
+    def append(self, t):
+        self.text += t
+    
+    def popText(self):
+        t = self.text
+        self.text = ''
+        return t
+
+    def stop(self):
+        while not self.audioQueue.empty():
+            self.audioQueue.get() # clear the Queue.
+        self.text = ''
+        self.status = AUDIOSTA.AUDIOSTOP
+    
+    def reset(self):
+        while not self.audioQueue.empty():
+            self.audioQueue.get() # clear the Queue.
+        self.text = ''
+        self.status = AUDIOSTA.INIT
+
+audio_buffer_map_lock = asyncio.Lock()
+audio_buffer_map: dict[str, AudioGenerator] = {}
+
 # 这是您的线程函数
-async def manage_txt_buffer_map():
+async def audio_generator():
     while True:
         is_empty = True
-        for id in list(txt_buffer_map.keys()):  # 安全在字典的时候删除元素
-            async with buffer_map_lock:
-                txt = txt_buffer_map[id].strip()
-                txt_buffer_map[id] = ''
+        async with audio_buffer_map_lock:
+            listkey = list(audio_buffer_map.keys())
+        for id in listkey:  # 安全在字典的时候删除元素
+            async with audio_buffer_map_lock:
+                txt = audio_buffer_map[id].popText()
+                audioQ = audio_buffer_map[id].audioQueue
+                
             if txt != '':
                 print(txt)
                 is_empty = False
-                await asyncio.get_running_loop().run_in_executor(None, QianWen.audio_by_txt_Q, txt, buffer_map[id])
+                await asyncio.get_running_loop().run_in_executor(None, QianWen.audio_by_txt_Q, txt, audioQ)
         if is_empty:
             await asyncio.sleep(1)  # 如果txt_buffer_map中的内容都是空 那么就等1秒后再循环遍历
 
 
 @app.on_event("startup")
 async def startup_event():
-    app.state.background_task = asyncio.create_task(manage_txt_buffer_map())
+    app.state.background_task = asyncio.create_task(audio_generator())
+
 
 @app.post("/audio_txt")
 async def handle_audio_action(request: Request):
@@ -168,52 +202,48 @@ async def handle_audio_action(request: Request):
         id = json_post_raw.get('id')
         text = json_post_raw.get('content')
         if len(text.strip()) != 0 and len(id.strip()) != 0:
-            theQ = None
-            async with buffer_map_lock:
-                if id not in buffer_map:
-                    theQ = Queue()
-                    buffer_map[id] = theQ
+            async with audio_buffer_map_lock:
+                if id not in audio_buffer_map:
+                    audio_buffer_map[id] = AudioGenerator(text)
                 else:
-                    theQ = buffer_map[id]
-                
-                if id not in txt_buffer_map:
-                    txt_buffer_map[id] = text
-                else:
-                    txt_buffer_map[id] += text
+                    audio_buffer_map[id].append(text)
             return  {"status":"OK"}
-        return {"Error":"invalid params"}
+        else:
+            print(f"Error params: {id} {text}")
+            return {"Error":"invalid params"}
     except Exception as e:
         print(f"Error: {e}")  # For logging purposes
         return {"Error": str(e)}
     
 @app.delete("/audio/{id}")
 async def handle_end_action(id: str):
-    async with buffer_map_lock:
-        if id in buffer_map:
-            while not buffer_map[id].empty():
-                buffer_map[id].get() # clear the Queue.
-            buffer_map[id].put(None)
-    
+    async with audio_buffer_map_lock:
+        if id in audio_buffer_map:
+            audio_buffer_map[id].stop()
+    await asyncio.sleep(2)
+    return  {"status":"OK"}       
+
 @app.get("/audio/{id}")
 async def audio(id: str):
     try:
-        async with buffer_map_lock: 
-            if id not in buffer_map:
-                buffer_map[id] = Queue()
-            current_buffer = buffer_map[id]
-            while not current_buffer.empty():
-                current_buffer.get() # clear the Queue.
-            
+        async with audio_buffer_map_lock: 
+            if id not in audio_buffer_map:
+                audio_buffer_map[id] = AudioGenerator()
+            else:
+                audio_buffer_map[id].reset()
+            currentAudio = audio_buffer_map[id]
+
         def iter_content():
             while True:
                 try:
-                    audio_data = current_buffer.get_nowait()
-                    if audio_data is None:
+                    if currentAudio.status == AUDIOSTA.AUDIOSTOP:
                         break
+                    audio_data = currentAudio.audioQueue.get_nowait()
                     yield audio_data
                 except Empty: # Sleep when there's nothing in the queue
                     time.sleep(1)
             print(f"Session:{id} audio play loop is end.")
+            currentAudio.reset()
             yield b''
         return StreamingResponse(iter_content(), media_type="audio/mpeg")
     except Exception as e:
