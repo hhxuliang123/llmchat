@@ -452,41 +452,38 @@ export const ChatInput = ({
             )}
           </button>
 
+          <div className="absolute bottom-12 right-0 lg:bottom-0 lg:-right-10">
           {showScrollDownButton && (
-            <div className="absolute bottom-12 right-0 lg:bottom-0 lg:-right-10">
               <button
                 className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-300 text-gray-800 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-neutral-200"
                 onClick={onScrollDownClick}
               >
                 <IconArrowDown size={18} />
               </button>
-            </div>
           )}
-          {messagedAudio == 2 ? (
-            <div className="absolute bottom-12 right-0 lg:bottom-0 lg:-right-10">
+          {messagedAudio == 2 ? (            
               <button
                 className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700  text-green-500 dark:text-green-400"
                 onClick={soundOffClick}
               >
                 <IconDeviceSpeakerOff size={18} />
               </button>
-            </div>
+            
           ) : (
-            messagedAudio == 0 ? (<div className="absolute bottom-12 right-0 lg:bottom-0 lg:-right-10">
+            messagedAudio == 0 ? (
               <button
                 className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-300 text-gray-800 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-neutral-200"
                 onClick={soundOnClick}
               >
                 <IconDeviceSpeaker size={18} />
               </button>
-            </div>
             ) : (
-              <div className="absolute bottom-12 right-0 lg:bottom-0 lg:-right-10">
+              
               <div className="flex h-4 w-4 animate-spin rounded-full border-t-2 border-neutral-800 opacity-60 dark:border-neutral-100 "></div>
-              </div>
+              
             )
           )}
-
+          </div>
           {showPromptList && filteredPrompts.length > 0 && (
             <div className="absolute bottom-12 w-full">
               <PromptList
