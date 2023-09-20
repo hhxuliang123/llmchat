@@ -2,8 +2,9 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import cookie from 'cookie';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
-  const cookies = cookie.parse(req.headers.cookie || '');
-  const id = JSON.parse(cookies.perfectek_ai_auth).content;
+  //const cookies = cookie.parse(req.headers.cookie || '');
+  //const id = JSON.parse(cookies.perfectek_ai_auth).content;
+  const id = req.query.id;
   
   const fastapiURL = `http://127.0.0.1:11223/audio/${id}`;
 

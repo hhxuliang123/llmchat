@@ -234,13 +234,16 @@ async def audio(id: str):
             currentAudio = audio_buffer_map[id]
 
         def iter_content():
+            count = 0
             while True:
                 try:
-                    if currentAudio.status == AUDIOSTA.AUDIOSTOP:
+                    if currentAudio.status == AUDIOSTA.AUDIOSTOP or count > 14:
                         break
                     audio_data = currentAudio.audioQueue.get_nowait()
+                    count = 0
                     yield audio_data
                 except Empty: # Sleep when there's nothing in the queue
+                    count += 1
                     time.sleep(0.45)
             print(f"Session:{id} audio play loop is end.")
             currentAudio.reset()

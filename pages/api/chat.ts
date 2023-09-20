@@ -17,7 +17,7 @@ export const config = {
 
 const handler = async (req: Request): Promise<Response> => {
   try {
-    const { model, messages, key, prompt, temperature, knowledge, audio } = (await req.json()) as ChatBody;
+    const { model, messages, key, prompt, temperature, knowledge, audioid } = (await req.json()) as ChatBody;
 
     const cookies = cookie.parse(req.headers.get('cookie') || '');
     const cookie_id = JSON.parse(cookies.perfectek_ai_auth).content;
@@ -131,19 +131,19 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (model['id'].startsWith('gpt')) {
-        stream = await OpenAIStream(audio, cookie_id,model, promptToSend, temperatureToUse, key, messagesToSend);
+        stream = await OpenAIStream(audioid, model, promptToSend, temperatureToUse, key, messagesToSend);
     }
     if (model['id'] == 'chatglm6') {
-        stream = await Chatgml6Stream(audio, cookie_id, messagesToSend, 0.7, temperatureToUse, 32000);
+        stream = await Chatgml6Stream(audioid, messagesToSend, 0.7, temperatureToUse, 32000);
     }
     if (model['id'] == 'spark') {
-      stream = await SparkStream(audio, cookie_id,messagesToSend, 0.7, temperatureToUse, 14000);
+      stream = await SparkStream(audioid, messagesToSend, 0.7, temperatureToUse, 14000);
     }
     if (model['id'] == 'zhipu') {
-        stream = await ZhipuAIStream(audio,cookie_id, messagesToSend, 0.7, temperatureToUse, 32000);
+        stream = await ZhipuAIStream(audioid, messagesToSend, 0.7, temperatureToUse, 32000);
     }
     if (model['id'] == 'qwen-turbo' || model['id'] == 'qwen-plus') {
-      stream = await ChatAIStream(audio, cookie_id,model['id'],messagesToSend, 0.7, temperatureToUse, 32000);
+      stream = await ChatAIStream(audioid, model['id'],messagesToSend, 0.7, temperatureToUse, 32000);
     }
     if (model['id'] == 'sd') {
       stream = await StableDiffusion(messagesToSend);

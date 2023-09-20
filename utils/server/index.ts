@@ -30,7 +30,6 @@ export class OpenAIError extends Error {
 }
 
 export const OpenAIStream = async (
-  audio_gen: boolean,
   cookie_id: string,
   model: OpenAIModel,
   systemPrompt: string,
@@ -91,7 +90,7 @@ export const OpenAIStream = async (
       );
     }
   }
-
+  let ret_str = '';
   const stream = new ReadableStream({
     async start(controller) {
       const onParse = (event: ParsedEvent | ReconnectInterval) => {
@@ -101,11 +100,19 @@ export const OpenAIStream = async (
           try {
             const json = JSON.parse(data);
             if (json.choices[0].finish_reason != null) {
+              if (cookie_id !== ''){
+                ret_str = processValue(cookie_id,'', ret_str, true);
+              }
               controller.close();
               return;
             }
             const text = json.choices[0].delta.content;
             const queue = encoder.encode(text);
+            if (cookie_id !== ''){
+              const tstr = text;
+              ret_str += tstr;
+              ret_str = processValue(cookie_id,tstr, ret_str, false);
+            }
             controller.enqueue(queue);
           } catch (e) {
             controller.error(e);
@@ -165,7 +172,6 @@ export const StableDiffusion = async (
 };
 
 export const ChatAIStream = async (
-  audio_gen: boolean,
   cookie_id: string,
   llm_type: string,
   messages: Message[],
@@ -191,6 +197,8 @@ export const ChatAIStream = async (
   //@ts-ignore
   const reader = response.body.getReader();
   const decoder = new TextDecoder('utf-8');
+  let ret_str = '';
+  
   const convertToReadableStream = async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
     const stream = new ReadableStream({
       async start(controller) {
@@ -199,8 +207,17 @@ export const ChatAIStream = async (
             const { done, value } = await reader.read();
             if(value){
               controller.enqueue(value);
+              if (cookie_id !== ''){
+                const tstr = decoder.decode(value);
+                ret_str += tstr;
+                ret_str = processValue(cookie_id,tstr, ret_str, false);
+                
+              }
             }
             if (done) {
+              if (cookie_id !== ''){
+                ret_str = processValue(cookie_id,'', ret_str, true);
+              }
               controller.close();
               return;
             }
@@ -218,7 +235,6 @@ export const ChatAIStream = async (
 };
 
 export const SparkStream = async (
-  audio_gen: boolean,
   cookie_id: string,
   messages: Message[],
   top_p: number,
@@ -242,6 +258,7 @@ export const SparkStream = async (
   //@ts-ignore
   const reader = response.body.getReader();
   const decoder = new TextDecoder('utf-8');
+  let ret_str = '';
   const convertToReadableStream = async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
     const stream = new ReadableStream({
       async start(controller) {
@@ -249,9 +266,17 @@ export const SparkStream = async (
           while (true) {
             const { done, value } = await reader.read();
             if(value){
+              if (cookie_id !== ''){
+                const tstr = decoder.decode(value);
+                ret_str += tstr;
+                ret_str = processValue(cookie_id,tstr, ret_str, false);
+              }
               controller.enqueue(value);
             }
             if (done) {
+              if (cookie_id !== ''){
+                ret_str = processValue(cookie_id,'', ret_str, true);
+              }
               controller.close();
               return;
             }
@@ -293,7 +318,6 @@ function processValue(cookie_id: string ,tstr: string, ret_str: string, all_mesg
 }
 
 export const Chatgml6Stream = async (
-  audio_gen: boolean,
   cookie_id: string,
   messages: Message[],
   top_p: number,
@@ -329,8 +353,7 @@ export const Chatgml6Stream = async (
   const reader = response.body.getReader();
   const decoder = new TextDecoder('utf-8');
   let ret_str = '';
-  let clear_audio = true;
-
+  
   const convertToReadableStream = async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
     const stream = new ReadableStream({
       async start(controller) {
@@ -339,15 +362,14 @@ export const Chatgml6Stream = async (
             const { done, value } = await reader.read();
             if(value){
               controller.enqueue(value);
-              if (audio_gen){
+              if (cookie_id !== ''){
                 const tstr = decoder.decode(value);
                 ret_str += tstr;
                 ret_str = processValue(cookie_id,tstr, ret_str, false);
-                clear_audio = false;
               }
             }
             if (done) {
-              if (audio_gen){
+              if (cookie_id !== ''){
                 ret_str = processValue(cookie_id,'', ret_str, true);
               }
               controller.close();
@@ -401,7 +423,6 @@ export const googleStream = async (
 };
 
 export const ZhipuAIStream = async (
-  audio_gen: boolean,
   cookie_id: string,
   messages: Message[],
   top_p: number,
@@ -432,6 +453,7 @@ export const ZhipuAIStream = async (
   });
   //@ts-ignore
   const reader = response.body.getReader();
+  let ret_str = '';
   const convertToReadableStream = async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
@@ -441,6 +463,9 @@ export const ZhipuAIStream = async (
           while (true) {
             const { done, value } = await reader.read();
             if (done) {
+              if (cookie_id !== ''){
+                ret_str = processValue(cookie_id,'', ret_str, true);
+              }
               controller.close();
               return;
             }
@@ -452,7 +477,13 @@ export const ZhipuAIStream = async (
                if(v.includes("data:") && v.includes("event:add")){
                   let datas = v.split('data:');
                   for (let i = 1; i < datas.length; i++) {
-                    controller.enqueue(encoder.encode(datas[i]));
+                    const value = encoder.encode(datas[i])
+                    controller.enqueue(value);
+                    if (cookie_id !== ''){
+                      const tstr = decoder.decode(value);
+                      ret_str += tstr;
+                      ret_str = processValue(cookie_id,tstr, ret_str, false);
+                    }
                   }
                 }
               }

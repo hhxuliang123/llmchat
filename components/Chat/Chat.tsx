@@ -11,6 +11,7 @@ import {
 import toast from 'react-hot-toast';
 
 import { useTranslation } from 'next-i18next';
+import Cookies from 'js-cookie';
 
 import { getEndpoint } from '@/utils/app/api';
 import {
@@ -69,6 +70,11 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [messagedAudio, setMessageAudio] = useState<boolean>(false);
 
+  const [globalAudio1, setglobalAudio1] = useState(new Audio());
+  const [globalAudio0, setglobalAudio0] = useState(new Audio());
+  const [freeAudio, setFreeAudio] = useState(0);
+  
+
   const handleSend = useCallback(
     async (message: Message, deleteCount = 0, plugin: Plugin | null = null) => {
       if (selectedConversation) {
@@ -94,6 +100,28 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         });
         homeDispatch({ field: 'loading', value: true });
         homeDispatch({ field: 'messageIsStreaming', value: true });
+        let sessionid = '';
+        if(messagedAudio){
+          let audio_obj = globalAudio0;
+          if (freeAudio === 1){
+            audio_obj = globalAudio1;
+            globalAudio0.src='';
+            globalAudio0.pause();
+            setFreeAudio(0);
+          }
+          else if (freeAudio === 0){
+            audio_obj = globalAudio0;
+            globalAudio1.src='';
+            globalAudio1.pause();
+            setFreeAudio(1);
+          }
+          let myCookie = JSON.parse(Cookies.get('perfectek_ai_auth')).content;
+          console.log(myCookie)
+          sessionid = `${myCookie}__${Date.now()}`;
+          const audioUrl = `api/audiomsggenstream?id=${sessionid}`;
+          audio_obj.src = audioUrl;
+          audio_obj.play();
+        }
         const chatBody: ChatBody = {
           model: updatedConversation.model,
           messages: updatedConversation.messages,
@@ -101,11 +129,12 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           prompt: updatedConversation.prompt,
           temperature: updatedConversation.temperature,
           knowledge: plugin_null,
-          audio: messagedAudio,
+          audioid: sessionid,          
         };
         if (plugin){
           chatBody.knowledge = plugin;
         }
+        
         const endpoint = 'api/chat';//getEndpoint(plugin);
         let body = JSON.stringify(chatBody);
         
@@ -500,6 +529,10 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             }}
             onAudio={(status) => {
               setMessageAudio(status);
+              globalAudio0.src = '';
+              globalAudio0.pause();
+              globalAudio1.src = '';
+              globalAudio1.pause();
             }}
             showScrollDownButton={showScrollDownButton}
           />
