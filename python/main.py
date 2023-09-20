@@ -220,7 +220,7 @@ async def handle_end_action(id: str):
     async with audio_buffer_map_lock:
         if id in audio_buffer_map:
             audio_buffer_map[id].stop()
-    await asyncio.sleep(2)
+    await asyncio.sleep(1)
     return  {"status":"OK"}       
 
 @app.get("/audio/{id}")
@@ -241,7 +241,7 @@ async def audio(id: str):
                     audio_data = currentAudio.audioQueue.get_nowait()
                     yield audio_data
                 except Empty: # Sleep when there's nothing in the queue
-                    time.sleep(1)
+                    time.sleep(0.45)
             print(f"Session:{id} audio play loop is end.")
             currentAudio.reset()
             yield b''
