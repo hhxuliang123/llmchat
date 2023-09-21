@@ -76,7 +76,7 @@ def audio_by_txt(txt,filename):
     result = SpeechSynthesizer.call(model='sambert-zhichu-v1',
                                     text=txt,
                                     sample_rate=48000,
-                                    format='wav')
+                                    format='mp3')
 
     if result.get_audio_data() is not None:
         with open(f"files/{filename}", 'wb') as f:

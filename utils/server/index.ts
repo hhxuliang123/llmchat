@@ -297,8 +297,14 @@ function processValue(cookie_id: string ,tstr: string, ret_str: string, all_mesg
   let au_s = '';
   if (all_mesg){
     au_s = ret_str;
-  } else if (tstr.includes('。')) {
-    au_s = ret_str.slice(0, 1 + ret_str.lastIndexOf('。'));
+  } else {
+    for (let char of '。.！!？?：:') {
+      if (tstr.includes(char)) {
+        au_s = ret_str.slice(0, 1 + ret_str.lastIndexOf(char));
+        ret_str = ret_str.slice(1 + ret_str.lastIndexOf(char));
+        break;
+      } 
+    }
   }
 
   if(au_s !== '') {
@@ -307,12 +313,6 @@ function processValue(cookie_id: string ,tstr: string, ret_str: string, all_mesg
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({content: au_s, id: cookie_id})
       });
-
-      if (tstr.includes('。')){
-        ret_str = ret_str.slice(1 + ret_str.lastIndexOf('。'));
-      }
-      console.log(au_s);
-      console.log(ret_str);
   }
   return ret_str;
 }

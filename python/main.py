@@ -4,9 +4,9 @@ from fastapi.responses import StreamingResponse
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-import json, os, time, requests, asyncio
+import json, os, time, requests, asyncio, re
 from queue import Queue, Empty
-import QianWen
+import QianWen, AWSAudio
 import enum
 
 app = FastAPI()
@@ -28,6 +28,9 @@ app.add_middleware(
  # max_age=1000
 )
 
+
+def is_english(s):
+    return bool(re.match('^[\x00-\x7F]*$', s))
 
 @app.post("/spark/stream")
 async def sparkStreamChat(request: Request):
@@ -118,11 +121,14 @@ async def txtaudio(request: Request):
         import hashlib
         hash_object = hashlib.md5(prompt.encode())
         md5_hash = hash_object.hexdigest()
-        file_name = f"{md5_hash}.wav"
+        file_name = f"{md5_hash}.mp3"
         if not os.path.exists(f"files/{file_name}"):
             print("call AI")
             loop = asyncio.get_running_loop()
-            result = await loop.run_in_executor(None, QianWen.audio_by_txt, prompt, file_name)
+            if is_english(prompt):
+                await loop.run_in_executor(None, AWSAudio.audio_by_txt, prompt, file_name)
+            else:
+                await loop.run_in_executor(None, QianWen.audio_by_txt, prompt, file_name)
         return {"filename":file_name}
         
     except Exception as e:
@@ -185,7 +191,10 @@ async def audio_generator():
             if txt != '':
                 print(txt)
                 is_empty = False
-                await asyncio.get_running_loop().run_in_executor(None, QianWen.audio_by_txt_Q, txt, audioQ)
+                if is_english(txt):
+                    await asyncio.get_running_loop().run_in_executor(None, AWSAudio.audio_by_txt_Q, txt, audioQ)
+                else:
+                    await asyncio.get_running_loop().run_in_executor(None, QianWen.audio_by_txt_Q, txt, audioQ)
         if is_empty:
             await asyncio.sleep(1)  # 如果txt_buffer_map中的内容都是空 那么就等1秒后再循环遍历
 
