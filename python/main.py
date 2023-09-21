@@ -106,8 +106,36 @@ async def stablediffusion(request: Request):
 
         download_image(image_url, file_path)
 
-        return f"![this is the picture](api/showfile?fileName={file_name})"
+        return file_name
         
+    except Exception as e:
+        print(f"Error: {e}")  # For logging purposes
+        return {"Error": str(e)}
+    
+@app.get("/stablediffusionpic/{prompt}")
+async def stablediffusionpic(prompt: str):
+    try:
+        print(prompt)
+        result = QianWen.sample_async_call(prompt)
+        image_url = result['result']['results'][0]['url']
+
+        def download_image(url, file_path):
+            response = requests.get(url, stream=True)
+            if response.status_code == 200:
+                with open(file_path, 'wb') as file:
+                    for chunk in response.iter_content(chunk_size=1024):
+                        if chunk:
+                            file.write(chunk)
+            else:
+                print(f"Unable to download image. Server responded with status code {response.status_code}")
+            
+        file_name = f"image{time.time()}.jpg"
+        file_path = os.path.join(os.getcwd()+'/files/', file_name)  #图片将被下载到当前工作目录
+
+        download_image(image_url, file_path)
+
+        return FileResponse(f"files/{file_name}")
+
     except Exception as e:
         print(f"Error: {e}")  # For logging purposes
         return {"Error": str(e)}

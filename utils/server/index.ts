@@ -167,8 +167,8 @@ export const StableDiffusion = async (
     }
   });
   //@ts-ignore
-  const data = await response.json();
-  return data
+  const filename = await response.json();
+  return `![this is the picture](api/showfile?fileName=${filename})`
 };
 
 export const ChatAIStream = async (

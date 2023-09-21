@@ -86,7 +86,7 @@ def audio_by_txt_Q(txt,Q):
     result = SpeechSynthesizer.call(model='sambert-zhichu-v1',
                                     text=txt,
                                     sample_rate=48000,
-                                    format='wav')
+                                    format='mp3')
     Q.put(result.get_audio_data())
     
 if __name__ == '__main__':
