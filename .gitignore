@@ -46,3 +46,4 @@ python/__pycache__/QianWen.cpython-310.pyc
 python/files/*
 python/set_env.bat
 python/__pycache__/AWSAudio.cpython-310.pyc
+python/json_file.json

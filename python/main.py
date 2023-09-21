@@ -83,12 +83,23 @@ async def qianwenStreamChat(request: Request):
     generator = chat_generator(prompt, llm_type, history, max_length, top_p, temperature)
     return StreamingResponse(generator, media_type="text/plain")
 
+pic_file_map_lock = asyncio.Lock()
+data_dict = {}
+try:
+    with open('json_file.json') as f:
+        data_dict = json.load(f)
+except:
+    pass
+
 @app.post("/stablediffusion")
 async def stablediffusion(request: Request):
     try:
         json_post_raw = await request.json()
         prompt = json_post_raw.get('prompt')
         print(prompt)
+        if prompt in data_dict:
+            return data_dict[prompt]
+        
         result = QianWen.sample_async_call(prompt)
         image_url = result['result']['results'][0]['url']
 
@@ -105,42 +116,16 @@ async def stablediffusion(request: Request):
         file_path = os.path.join(os.getcwd()+'/files/', file_name)  #图片将被下载到当前工作目录
 
         download_image(image_url, file_path)
-
+        data_dict[prompt] = file_name
+        async with pic_file_map_lock:
+            with open('json_file.json', 'w') as f:
+                json.dump(data_dict, f)
         return file_name
         
     except Exception as e:
         print(f"Error: {e}")  # For logging purposes
         return {"Error": str(e)}
     
-@app.get("/stablediffusionpic/{prompt}")
-async def stablediffusionpic(prompt: str):
-    try:
-        print(prompt)
-        result = QianWen.sample_async_call(prompt)
-        image_url = result['result']['results'][0]['url']
-
-        def download_image(url, file_path):
-            response = requests.get(url, stream=True)
-            if response.status_code == 200:
-                with open(file_path, 'wb') as file:
-                    for chunk in response.iter_content(chunk_size=1024):
-                        if chunk:
-                            file.write(chunk)
-            else:
-                print(f"Unable to download image. Server responded with status code {response.status_code}")
-            
-        file_name = f"image{time.time()}.jpg"
-        file_path = os.path.join(os.getcwd()+'/files/', file_name)  #图片将被下载到当前工作目录
-
-        download_image(image_url, file_path)
-
-        return FileResponse(f"files/{file_name}")
-
-    except Exception as e:
-        print(f"Error: {e}")  # For logging purposes
-        return {"Error": str(e)}
-    
-
 @app.post("/aliaudio")
 async def txtaudio(request: Request):
     try:
