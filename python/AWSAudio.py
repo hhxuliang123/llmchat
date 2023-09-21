@@ -3,7 +3,7 @@ import os
 
 def audio_by_txt(text,filename):
     polly = client("polly", aws_access_key_id=os.environ.get('AWS_ACCESS_KEY'), aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'), region_name="us-east-1")
-    response=polly.synthesize_speech(Text=text,OutputFormat='mp3',Engine='standard',VoiceId='Aditi')
+    response=polly.synthesize_speech(Text=text,OutputFormat='mp3',Engine='standard',VoiceId='Amy')
 
     result=response['AudioStream'].read()
 
@@ -14,14 +14,14 @@ def audio_by_txt(text,filename):
 
 def audio_by_txt_Q(text,Q):
     polly = client("polly", aws_access_key_id=os.environ.get('AWS_ACCESS_KEY'), aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'), region_name="us-east-1")
-    response=polly.synthesize_speech(Text=text,OutputFormat='mp3',Engine='standard',VoiceId='Aditi')
+    response=polly.synthesize_speech(Text=text,OutputFormat='mp3',Engine='standard',VoiceId='Amy')
     result=response['AudioStream'].read()
     Q.put(result)
     
 
 def awsaudio(text):
     polly = client("polly", aws_access_key_id=os.environ.get('AWS_ACCESS_KEY'), aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'), region_name="us-east-1")
-    response=polly.synthesize_speech(Text=text,OutputFormat='mp3',Engine='standard',VoiceId='Aditi')
+    response=polly.synthesize_speech(Text=text,OutputFormat='mp3',Engine='standard',VoiceId='Amy')
     return response['AudioStream'].read()
     
 

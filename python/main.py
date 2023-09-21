@@ -30,7 +30,7 @@ app.add_middleware(
 
 
 def is_english(s):
-    return bool(re.match('^[\x00-\x7F]*$', s))
+    return bool(re.match('^[\x00-\x7F]*$', s[:100]))
 
 @app.post("/spark/stream")
 async def sparkStreamChat(request: Request):
