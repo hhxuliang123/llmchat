@@ -12,6 +12,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
       method: 'POST',
       body: JSON.stringify({
         prompt: txt,
+        action: 'generate',
       }),
       headers: {
         'Content-Type': 'application/json'

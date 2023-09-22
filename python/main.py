@@ -8,6 +8,9 @@ import json, os, time, requests, asyncio, re
 from queue import Queue, Empty
 import QianWen, AWSAudio
 import enum
+import aiohttp
+import aiofiles
+
 
 app = FastAPI()
 
@@ -88,7 +91,7 @@ data_dict = {}
 try:
     with open('json_file.json') as f:
         data_dict = json.load(f)
-except:
+except FileNotFoundError:
     pass
 
 @app.post("/stablediffusion")
@@ -96,34 +99,49 @@ async def stablediffusion(request: Request):
     try:
         json_post_raw = await request.json()
         prompt = json_post_raw.get('prompt')
-        print(prompt)
-        if prompt in data_dict:
-            return data_dict[prompt]
-        
-        result = QianWen.sample_async_call(prompt)
-        image_url = result['result']['results'][0]['url']
+        action = json_post_raw.get('action')
+        print(f"Stable Diffusion generator: action is {action}, prompt is {prompt}.")
 
-        def download_image(url, file_path):
-            response = requests.get(url, stream=True)
-            if response.status_code == 200:
-                with open(file_path, 'wb') as file:
-                    for chunk in response.iter_content(chunk_size=1024):
-                        if chunk:
-                            file.write(chunk)
-            else:
-                print(f"Unable to download image. Server responded with status code {response.status_code}")
         file_name = f"image{time.time()}.jpg"
-        file_path = os.path.join(os.getcwd()+'/files/', file_name)  #图片将被下载到当前工作目录
-
-        download_image(image_url, file_path)
-        data_dict[prompt] = file_name
+        
         async with pic_file_map_lock:
-            with open('json_file.json', 'w') as f:
-                json.dump(data_dict, f)
+            if prompt in data_dict:
+                if action == 'generate':
+                    print(f"Action is {action}. {data_dict[prompt]} is shotted.")
+                    return data_dict[prompt]
+                else:
+                    print(f"Action is {action}. Old picture {data_dict[prompt]} is deleted.")
+                    os.remove(f"files/{data_dict[prompt]}")
+                    del data_dict[prompt]
+                    async with aiofiles.open('json_file.json', 'w') as f:
+                        await f.write(json.dumps(data_dict))
+    
+        result = QianWen.sample_async_call(prompt)
+    
+        if 'result' not in result or 'results' not in result['result'] or len(result['result']['results']) < 1 or 'url' not in result['result']['results'][0]:
+            raise ValueError("Unexpected result structure: missing 'url'")
+
+        url = result['result']['results'][0]['url']
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    file_path = os.path.join(os.getcwd()+'/files/', file_name)
+                    async with aiofiles.open(file_path, 'wb') as file:
+                        await file.write(await response.read())
+                else:
+                    print(f"Unable to download image. Server responded with status code {response.status}")
+        
+        async with pic_file_map_lock:
+            data_dict[prompt] = file_name
+            async with aiofiles.open('json_file.json', 'w') as f:
+                await f.write(json.dumps(data_dict))
+    
+        print(f"{file_name} generate is done and then return.")
         return file_name
         
     except Exception as e:
-        print(f"Error: {e}")  # For logging purposes
+        print(f"Error: {e}")  
         return {"Error": str(e)}
     
 @app.post("/aliaudio")

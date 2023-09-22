@@ -161,6 +161,7 @@ export const StableDiffusion = async (
     method: 'POST',
     body: JSON.stringify({
       prompt: cmd,
+      action: 'regenerate',
     }),
     headers: {
       'Content-Type': 'application/json'

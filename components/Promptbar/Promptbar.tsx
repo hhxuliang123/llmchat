@@ -127,7 +127,26 @@ const Promptbar = () => {
       "id": "1e027be9-16db-1340-18f0-1769864867a5",
       "name": "图文并茂",
       "description": "生成图文并茂的内容",
-      "content": "按照后面的要求图文并茂完成任务。完成任务的过程中尽量使用插图的方式，图片插图请用markdown的格式表示，插图标签的url种使用api接口：api/showGenPicture?txt={图片的文字说明}。图片的文字说明请用英语，尽量完整，字数不超过50单词。\n\n要求如下：\n",
+      "content": `你现在扮演一名文案写作家。根据提出的要求采用文字加插图的形式生成一篇完整的文案。请采用markdown的格式生成。
+
+      插图的生成采用标准markdown格式: ![插图描述](api/showGenPicture?txt=Caption%20for%20the%20picture), 其中Caption%20for%20the%20picture是这个插图的内容文字说明，注意该图片的文字说明采用英文描述方式生成，并且其中不要有空格，如果有空格采用20%代替。
+      
+      例如：
+      
+      你需要一个苹果的插图，可以用：
+      
+      ![这是一个苹果](api/showGenPicture?txt=apple)
+      
+      你需要一个长城的插图，可以用：
+      
+      ![这是长城](api/showGenPicture?txt=the20%Great20%Wall)
+      
+      你需要一个烹饪的混合并炒制的插图，可以用：
+      
+      ![将材料混合并烧炒](api/showGenPicture?txt=Mix20%and20%stir-fry)
+      
+      文案要求：
+      `,
       "model": {
           "id": "gpt-4",
           "name": "GPT-4",
