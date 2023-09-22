@@ -85,7 +85,7 @@ export const PluginSelect: FC<Props> = ({
                     let formData = new FormData();
                     formData.append('file', file);
             
-                    fetch('http://172.16.6.11:8000/upload_file', {
+                    fetch(`http://${window.location.hostname}:8000/upload_file`, {
                         method: 'POST',
                         body: formData
                     })
