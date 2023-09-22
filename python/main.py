@@ -213,12 +213,9 @@ async def audio_generator():
     while True:
         is_empty = True
         async with audio_buffer_map_lock:
-            listkey = list(audio_buffer_map.keys())
-        for id in listkey:  # 安全在字典的时候删除元素
-            async with audio_buffer_map_lock:
-                txt = audio_buffer_map[id].popText()
-                audioQ = audio_buffer_map[id].audioQueue
-                
+            key_values = [(key, audio_buffer_map[key].popText(), audio_buffer_map[key].audioQueue) for key in audio_buffer_map.keys()]
+        
+        for id, txt, audioQ in key_values:   # 安全在字典的时候删除元素
             if txt != '':
                 print(txt)
                 is_empty = False

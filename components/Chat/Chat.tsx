@@ -118,7 +118,9 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           let myCookie = JSON.parse(Cookies.get('perfectek_ai_auth')).content;
           console.log(myCookie)
           sessionid = `${myCookie}__${Date.now()}`;
-          const audioUrl = `api/audiomsggenstream?id=${sessionid}`;
+          var host = window.location.hostname;
+          const audioUrl = `http://${host}:11223/audio/${sessionid}`;
+          //const audioUrl = `api/audiomsggenstream?id=${sessionid}`;
           audio_obj.src = audioUrl;
           audio_obj.play();
         }
