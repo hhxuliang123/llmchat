@@ -84,8 +84,11 @@ export const PluginSelect: FC<Props> = ({
                 
                     let formData = new FormData();
                     formData.append('file', file);
-            
-                    fetch(`http://${window.location.hostname}:8000/upload_file`, {
+                    let the_host = '172.16.6.11';
+                    if (window.location.hostname.includes('perfectek')){
+                      the_host = window.location.hostname;
+                    }
+                    fetch(`http://${the_host}:8000/upload_file`, {
                         method: 'POST',
                         body: formData
                     })
