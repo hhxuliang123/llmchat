@@ -157,6 +157,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           let done = false;
           let isFirst = true;
           let text = '';
+          let audio_opened = true;
           while (!done) {
             if (stopConversationRef.current === true) {
               controller.abort();
@@ -164,7 +165,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
               break;
             }
             const { value, done: doneReading } = await reader.read();
-            if(messagedAudio){
+            if(messagedAudio && audio_opened){
+              audio_opened = false;
               let audio_obj = globalAudio0;
               if (freeAudio === 1){
                 audio_obj = globalAudio1;
