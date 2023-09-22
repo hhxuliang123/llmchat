@@ -101,29 +101,9 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         homeDispatch({ field: 'loading', value: true });
         homeDispatch({ field: 'messageIsStreaming', value: true });
         let sessionid = '';
-        if(messagedAudio){
-          let audio_obj = globalAudio0;
-          if (freeAudio === 1){
-            audio_obj = globalAudio1;
-            globalAudio0.src='';
-            globalAudio0.pause();
-            setFreeAudio(0);
-          }
-          else if (freeAudio === 0){
-            audio_obj = globalAudio0;
-            globalAudio1.src='';
-            globalAudio1.pause();
-            setFreeAudio(1);
-          }
-          let myCookie = JSON.parse(Cookies.get('perfectek_ai_auth')).content;
-          console.log(myCookie)
-          sessionid = `${myCookie}__${Date.now()}`;
-          var host = window.location.hostname;
-          const audioUrl = `http://${host}:11223/audio/${sessionid}`;
-          //const audioUrl = `api/audiomsggenstream?id=${sessionid}`;
-          audio_obj.src = audioUrl;
-          audio_obj.play();
-        }
+        let myCookie = JSON.parse(Cookies.get('perfectek_ai_auth')).content;
+        sessionid = `${myCookie}__${Date.now()}`;
+        console.log(myCookie)
         const chatBody: ChatBody = {
           model: updatedConversation.model,
           messages: updatedConversation.messages,
@@ -184,6 +164,26 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
               break;
             }
             const { value, done: doneReading } = await reader.read();
+            if(messagedAudio){
+              let audio_obj = globalAudio0;
+              if (freeAudio === 1){
+                audio_obj = globalAudio1;
+                globalAudio0.src='';
+                globalAudio0.pause();
+                setFreeAudio(0);
+              }
+              else if (freeAudio === 0){
+                audio_obj = globalAudio0;
+                globalAudio1.src='';
+                globalAudio1.pause();
+                setFreeAudio(1);
+              }
+              var host = window.location.hostname;
+              const audioUrl = `http://${host}:11223/audio/${sessionid}`;
+              //const audioUrl = `api/audiomsggenstream?id=${sessionid}`;
+              audio_obj.src = audioUrl;
+              audio_obj.play();
+            }
             done = doneReading;
             const chunkValue = decoder.decode(value);
             text += chunkValue;
