@@ -224,7 +224,7 @@ async def audio_generator():
                 else:
                     await asyncio.get_running_loop().run_in_executor(None, QianWen.audio_by_txt_Q, txt, audioQ)
         if is_empty:
-            await asyncio.sleep(1)  # 如果txt_buffer_map中的内容都是空 那么就等1秒后再循环遍历
+            await asyncio.sleep(0.4)  # 如果txt_buffer_map中的内容都是空 那么就等1秒后再循环遍历
 
 
 @app.on_event("startup")
