@@ -312,8 +312,16 @@ function processValue(cookie_id: string ,tstr: string, ret_str: string, all_mesg
       fetch("http://127.0.0.1:11223/audio_txt", {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({content: au_s, id: cookie_id})
+          body: JSON.stringify({content: au_s, action: 'text', id: cookie_id})
       });
+  }
+
+  if(all_mesg) {
+    fetch("http://127.0.0.1:11223/audio_txt", {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content: au_s, action: 'end', id: cookie_id})
+    });
   }
   return ret_str;
 }

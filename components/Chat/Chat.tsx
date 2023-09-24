@@ -101,9 +101,11 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         homeDispatch({ field: 'loading', value: true });
         homeDispatch({ field: 'messageIsStreaming', value: true });
         let sessionid = '';
-        let myCookie = JSON.parse(Cookies.get('perfectek_ai_auth')).content;
-        sessionid = `${myCookie}__${Date.now()}`;
-        console.log(myCookie)
+        if (messagedAudio){
+          let myCookie = JSON.parse(Cookies.get('perfectek_ai_auth')).content;
+          sessionid = `${myCookie}__${Date.now()}`;
+          console.log(myCookie)
+        }
         const chatBody: ChatBody = {
           model: updatedConversation.model,
           messages: updatedConversation.messages,
