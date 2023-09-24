@@ -208,6 +208,7 @@ class AudioGenerator:
 audio_buffer_map_lock = asyncio.Lock()
 audio_buffer_map: dict[str, AudioGenerator] = {}
 
+pt_txt_end = 'BJ_PERFECTEK_20180808_END'
 # 这是您的线程函数
 async def audio_generator():
     while True:
@@ -217,12 +218,15 @@ async def audio_generator():
         
         for id, txt, audioQ in key_values:   # 安全在字典的时候删除元素
             if txt != '':
-                print(txt)
+                print(f"{time.ctime()}:audio gen by text:{txt}")
                 is_empty = False
-                if is_english(txt):
-                    await asyncio.get_running_loop().run_in_executor(None, AWSAudio.audio_by_txt_Q, txt, audioQ)
+                au_t = txt.replace(pt_txt_end, '')
+                if is_english(au_t):
+                    await asyncio.get_running_loop().run_in_executor(None, AWSAudio.audio_by_txt_Q, au_t, audioQ)
                 else:
-                    await asyncio.get_running_loop().run_in_executor(None, QianWen.audio_by_txt_Q, txt, audioQ)
+                    await asyncio.get_running_loop().run_in_executor(None, QianWen.audio_by_txt_Q, au_t, audioQ)
+                if pt_txt_end in txt:
+                    audioQ.put(None)
         if is_empty:
             await asyncio.sleep(0.4)  # 如果txt_buffer_map中的内容都是空 那么就等1秒后再循环遍历
 
@@ -236,14 +240,18 @@ async def startup_event():
 async def handle_audio_action(request: Request):
     try:
         json_post_raw = await request.json()
-        id = json_post_raw.get('id')
-        text = json_post_raw.get('content')
-        if len(text.strip()) != 0 and len(id.strip()) != 0:
+        id = json_post_raw.get('id').strip()
+        text = json_post_raw.get('content').strip()
+        action = json_post_raw.get('action').strip()
+        print(f"{time.ctime()}:receive text:{text}")
+        if id != '':
             async with audio_buffer_map_lock:
                 if id not in audio_buffer_map:
                     audio_buffer_map[id] = AudioGenerator(text)
                 else:
                     audio_buffer_map[id].append(text)
+                    if action == "end":
+                        audio_buffer_map[id].append(pt_txt_end)
             return  {"status":"OK"}
         else:
             print(f"Error params: {id} {text}")
@@ -266,25 +274,28 @@ async def audio(id: str):
         async with audio_buffer_map_lock: 
             if id not in audio_buffer_map:
                 audio_buffer_map[id] = AudioGenerator()
-            else:
-                audio_buffer_map[id].reset()
+            #else:
+            #    audio_buffer_map[id].reset()
             currentAudio = audio_buffer_map[id]
 
         def iter_content():
             count = 0
             while True:
                 try:
-                    if currentAudio.status == AUDIOSTA.AUDIOSTOP or count > 14:
-                        break
                     audio_data = currentAudio.audioQueue.get_nowait()
                     count = 0
+                    print("write a audio!")
+                    if audio_data is None:
+                        break
                     yield audio_data
                 except Empty: # Sleep when there's nothing in the queue
                     count += 1
+                    if currentAudio.status == AUDIOSTA.AUDIOSTOP or count > 14:
+                        break
                     time.sleep(0.45)
-            print(f"Session:{id} audio play loop is end.")
+            print(f"{time.ctime()}:Session:{id} audio play loop is end.")
             currentAudio.reset()
-            yield b''
+            return b''
         return StreamingResponse(iter_content(), media_type="audio/mpeg")
     except Exception as e:
         print(f"Error: {e}")  # For logging purposes
