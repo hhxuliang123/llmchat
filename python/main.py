@@ -300,3 +300,45 @@ async def audio(id: str):
     except Exception as e:
         print(f"Error: {e}")  # For logging purposes
         return {"Error": str(e)}
+
+
+@app.get("/audio_ios/{id}")
+async def audio_ios(id: str):
+    try:
+        first_time = False
+        async with audio_buffer_map_lock: 
+            if id not in audio_buffer_map:
+                audio_buffer_map[id] = AudioGenerator()
+            #else:
+            #    audio_buffer_map[id].reset()
+            currentAudio = audio_buffer_map[id]
+            if currentAudio.status == AUDIOSTA.INIT:
+                currentAudio.status = AUDIOSTA.AUDIOPLAY
+                first_time = True
+        def iter_content():
+            count = 0
+            while True:
+                try:
+                    if first_time:
+                        yield b'00000000000000000000000000000000000000000000000000000000000000000000000'
+                        time.sleep(5)
+                        break
+                    audio_data = currentAudio.audioQueue.get_nowait()
+                    count = 0
+                    print("write a audio!")
+                    if audio_data is None:
+                        break
+                    yield audio_data
+                    
+                except Empty: # Sleep when there's nothing in the queue
+                    count += 1
+                    if currentAudio.status == AUDIOSTA.AUDIOSTOP or count > 14:
+                        break
+                    time.sleep(0.45)
+            print(f"{time.ctime()}:Session:{id} audio play loop is end.")
+            currentAudio.reset()
+            return b''
+        return StreamingResponse(iter_content(), media_type="audio/mpeg")
+    except Exception as e:
+        print(f"Error: {e}")  # For logging purposes
+        return {"Error": str(e)}

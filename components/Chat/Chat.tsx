@@ -183,7 +183,12 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                 setFreeAudio(1);
               }
               var host = window.location.hostname;
-              const audioUrl = `http://${host}:11223/audio/${sessionid}`;
+              let prestr = ''
+              if (['iPad', 'iPhone', 'iPod'].includes(navigator.platform) 
+                  ||(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)){
+                prestr = '_ios';
+              }
+              const audioUrl = `http://${host}:11223/audio${prestr}/${sessionid}`;
               //const audioUrl = `api/audiomsggenstream?id=${sessionid}`;
               audio_obj.src = audioUrl;
               audio_obj.play();
