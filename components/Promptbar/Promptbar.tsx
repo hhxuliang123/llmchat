@@ -155,6 +155,45 @@ const Promptbar = () => {
       },
       "folderId": null
     });
+    prompts.push({
+      "id": "2e027be9-26db-2340-28f0-2769864867a5",
+      "name": "译成中文",
+      "description": "翻译成中文",
+      "content": '请将下面的内容翻译成中文：',
+      "model": {
+          "id": "gpt-3.5",
+          "name": "GPT-3.5",
+          "maxLength": 12000,
+          "tokenLimit": 4000
+      },
+      "folderId": null
+    });
+    prompts.push({
+      "id": "3e027be9-36db-3340-38f0-3769864867a5",
+      "name": "To English",
+      "description": "Translate into English",
+      "content": 'Please translate the following text into English:',
+      "model": {
+          "id": "gpt-3.5",
+          "name": "GPT-3.5",
+          "maxLength": 12000,
+          "tokenLimit": 4000
+      },
+      "folderId": null
+    });
+    prompts.push({
+      "id": "4e027be9-46db-4340-48f0-4769864867a5",
+      "name": "解释",
+      "description": "解释内容",
+      "content": '请解释一下后面的内容：',
+      "model": {
+          "id": "gpt-3.5",
+          "name": "GPT-3.5",
+          "maxLength": 12000,
+          "tokenLimit": 4000
+      },
+      "folderId": null
+    });
   }
 
   return (

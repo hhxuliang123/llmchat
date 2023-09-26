@@ -69,7 +69,7 @@ export const SystemPrompt: FC<Props> = ({
   const handleInitModal = () => {
     const selectedPrompt = filteredPrompts[activePromptIndex];
     setValue((prevVal) => {
-      const newContent = prevVal?.replace(/\/\w*$/, selectedPrompt.content);
+      const newContent = prevVal?.replace(/^\ \w*$/, selectedPrompt.content);
       return newContent;
     });
     handlePromptSelect(selectedPrompt);
@@ -89,7 +89,7 @@ export const SystemPrompt: FC<Props> = ({
   };
 
   const updatePromptListVisibility = useCallback((text: string) => {
-    const match = text.match(/\/\w*$/);
+    const match = text.match(/^\ \w*$/);
 
     if (match) {
       setShowPromptList(true);
@@ -107,7 +107,7 @@ export const SystemPrompt: FC<Props> = ({
     if (parsedVariables.length > 0) {
       setIsModalVisible(true);
     } else {
-      const updatedContent = value?.replace(/\/\w*$/, prompt.content);
+      const updatedContent = value?.replace(/^\ \w*$/, prompt.content);
 
       setValue(updatedContent);
       onChangePrompt(updatedContent);

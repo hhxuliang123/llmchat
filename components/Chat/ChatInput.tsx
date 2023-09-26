@@ -139,7 +139,7 @@ export const ChatInput = ({
     if (selectedPrompt) {
       setContent((prevContent) => {
         const newContent = prevContent?.replace(
-          /\/\w*$/,
+          /^\ \w*$/,
           selectedPrompt.content,
         );
         return newContent;
@@ -197,7 +197,7 @@ export const ChatInput = ({
   };
 
   const updatePromptListVisibility = useCallback((text: string) => {
-    const match = text.match(/\/\w*$/);
+    const match = text.match(/^\ \w*$/);
 
     if (match) {
       setShowPromptList(true);
@@ -216,7 +216,7 @@ export const ChatInput = ({
       setIsModalVisible(true);
     } else {
       setContent((prevContent) => {
-        const updatedContent = prevContent?.replace(/\/\w*$/, prompt.content);
+        const updatedContent = prevContent?.replace(/^\ \w*$/, prompt.content);
         return updatedContent;
       });
       updatePromptListVisibility(prompt.content);
@@ -412,7 +412,7 @@ export const ChatInput = ({
               }`,
             }}
             placeholder={
-              t('Type a message or type "/" to select a prompt...') || ''
+              t('Type a message or type "Space Bar" to select a prompt...') || ''
             }
             value={content}
             rows={1}
