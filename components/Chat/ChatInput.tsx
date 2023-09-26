@@ -9,8 +9,8 @@ import {
   IconFileText,
   IconForms,
   IconMail,
-  IconDeviceSpeaker,
-  IconDeviceSpeakerOff,
+  IconVolumeOff,
+  IconVolume,
 } from '@tabler/icons-react';
 import {
   KeyboardEvent,
@@ -442,12 +442,13 @@ export const ChatInput = ({
                 <IconArrowDown size={18} />
               </button>
           )}
+          &nbsp;
           {messagedAudio ? (            
               <button
                 className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700  text-green-500 dark:text-green-400"
                 onClick={soundOffClick}
               >
-                <IconDeviceSpeakerOff size={18} />
+                <IconVolumeOff size={18} />
               </button>
             
           ) : (
@@ -455,7 +456,7 @@ export const ChatInput = ({
                 className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-300 text-gray-800 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-neutral-200"
                 onClick={soundOnClick}
               >
-                <IconDeviceSpeaker size={18} />
+                <IconVolume size={18} />
               </button>
             
           )}

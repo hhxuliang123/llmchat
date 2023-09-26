@@ -40,7 +40,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
       maxAge: 60 * 60 * 24 * 2,
       path: '/',
       });
-    res.setHeader('Set-Cookie', cookie);
+    const cookie_name = serialize('perfectek_ai_name',username, {
+      maxAge: 60 * 60 * 24 * 2,
+      path: '/',
+      });
+    res.setHeader('Set-Cookie', [cookie, cookie_name]);
 
     res.status(200).json({ status: 'Logged in' });
   }else{

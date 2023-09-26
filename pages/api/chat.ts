@@ -18,11 +18,12 @@ export const config = {
 const handler = async (req: Request): Promise<Response> => {
   try {
     const { model, messages, key, prompt, temperature, knowledge, audioid } = (await req.json()) as ChatBody;
-
-    const cookies = cookie.parse(req.headers.get('cookie') || '');
-    const cookie_id = JSON.parse(cookies.perfectek_ai_auth).content;
-    //console.log(cookie_id);
-    
+    let userid = '';
+    try{
+      const cookies = cookie.parse(req.headers.get('cookie') || '');
+      userid = JSON.parse(cookies.perfectek_ai_name).content;
+    }catch (error) {
+    }
     await init((imports) => WebAssembly.instantiate(wasm, imports));
     const encoding = new Tiktoken(
       tiktokenModel.bpe_ranks,
@@ -55,16 +56,11 @@ const handler = async (req: Request): Promise<Response> => {
       tokenCount += tokens.length;
       messagesToSend = [message, ...messagesToSend];
     }
-
     encoding.free();
-    
-    console.log((new Date()).toString())
-    console.log(model['id'])
-    console.log('^^^^^^^^^^^^^^^^^^^^')
-    //console.log(messages)
-    console.log('==================================')
     let stream = null;
     let msg = messagesToSend[messagesToSend.length-1].content.trim();
+    console.log(`[${new Date()}]===>phoneNO:${userid}, receive_message, model:${model['id']}, plugin:${knowledge.id}, msg_len:${msg.length}.
+msg:${msg}`);
     //console.log(knowledge);
     if(model['id'] !== 'google'){
       if(knowledge.id === PluginID.CHECK_LIST){        

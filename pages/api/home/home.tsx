@@ -357,9 +357,9 @@ const Home = ({
   useEffect(() => {
     const checkCookie = () => {
       // 你想检查的cookie名称，请根据实际情况修改
-      if ((Date.now() - Number(mycookie.split(':')[2])) < (1000 * 60 * 60 * 24 * 4)) {
+      if (mycookie !=='' && ((Date.now() - Number(mycookie.split(':')[2])) < (1000 * 60 * 60 * 24 * 4))) {
        setIsLoggedIn(true);
-      } else {
+             } else {
        setIsLoggedIn(false);
       }   
     };
@@ -370,7 +370,7 @@ const Home = ({
   if(!isLoggedIn) {
     return <Login onLogin={() => setIsLoggedIn(true)} />
   }
-
+  
   return (
     <HomeContext.Provider
       value={{
@@ -440,7 +440,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     // Extract cookies from request headers
     decrypt_cookie = JSON.parse(COOKIE.parse(context.req.headers.cookie)['perfectek_ai_auth']);
     mycookie = decrypt(decrypt_cookie);
-  }catch(e){}
+    const username = JSON.parse(COOKIE.parse(context.req.headers.cookie)['perfectek_ai_name']);
+  }catch(e){
+    mycookie = '';
+  }
   
   const defaultModelId =
     (process.env.DEFAULT_MODEL &&
