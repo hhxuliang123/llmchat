@@ -60,7 +60,7 @@ const handler = async (req: Request): Promise<Response> => {
     let stream = null;
     let msg = messagesToSend[messagesToSend.length-1].content.trim();
     const log = `==>phoneNO:${userid}, receive_message, model:${model['id']}, plugin:${knowledge.id}, msg_len:${msg.length}, audio:${audioid == '' ? 'off' : 'on'}.`
-    fetch('http://127.0.0.1:11223/logfile', {method: 'POST', body: JSON.stringify({content: log})});
+    fetch('http://127.0.0.1:11223/logfile', {method: 'POST', body: JSON.stringify({content: log, msg: msg})});
     console.log(`${new Date()} ${log}`);
     console.log(msg);
     if(model['id'] !== 'google'){

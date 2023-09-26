@@ -182,7 +182,8 @@ async def logfile(request: Request):
     try:
         json_post_raw = await request.json()
         log = json_post_raw.get('content')
-        logging.info(log)		
+        msg = json_post_raw.get('msg')
+        logging.info(f'{log}\n{msg}')		
         return {"status":"OK"}
         
     except Exception as e:
