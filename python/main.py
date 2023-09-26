@@ -173,6 +173,22 @@ async def read_file(file_path: str):
 
 
 
+import logging
+logging.basicConfig(filename='logfile.log', format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+
+@app.post("/logfile")
+async def logfile(request: Request):
+    try:
+        json_post_raw = await request.json()
+        log = json_post_raw.get('content')
+        logging.info(log)		
+        return {"status":"OK"}
+        
+    except Exception as e:
+        print(f"Error: {e}")  # For logging purposes
+        return {"Error": str(e)}
+
 ## Audio generate 
 class AUDIOSTA(enum.Enum): 
     INIT = 1

@@ -32,6 +32,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
   console.log(authData);
   const encryptedData = encrypt(authData);
   const cookieValue = JSON.stringify(encryptedData); 
+
+  const log = `==>phoneNO:${username}, login.`
+  fetch('http://127.0.0.1:11223/logfile', {method: 'POST', body: JSON.stringify({content: log})});
   
   // 检查是否找到用户且密码是否匹配
   if (employee && employee.password === password) {

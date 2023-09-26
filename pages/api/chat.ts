@@ -21,7 +21,7 @@ const handler = async (req: Request): Promise<Response> => {
     let userid = '';
     try{
       const cookies = cookie.parse(req.headers.get('cookie') || '');
-      userid = JSON.parse(cookies.perfectek_ai_name).content;
+      userid = cookies.perfectek_ai_name;
     }catch (error) {
     }
     await init((imports) => WebAssembly.instantiate(wasm, imports));
@@ -59,9 +59,10 @@ const handler = async (req: Request): Promise<Response> => {
     encoding.free();
     let stream = null;
     let msg = messagesToSend[messagesToSend.length-1].content.trim();
-    console.log(`[${new Date()}]===>phoneNO:${userid}, receive_message, model:${model['id']}, plugin:${knowledge.id}, msg_len:${msg.length}.
-msg:${msg}`);
-    //console.log(knowledge);
+    const log = `==>phoneNO:${userid}, receive_message, model:${model['id']}, plugin:${knowledge.id}, msg_len:${msg.length}, audio:${audioid == '' ? 'off' : 'on'}.`
+    fetch('http://127.0.0.1:11223/logfile', {method: 'POST', body: JSON.stringify({content: log})});
+    console.log(`${new Date()} ${log}`);
+    console.log(msg);
     if(model['id'] !== 'google'){
       if(knowledge.id === PluginID.CHECK_LIST){        
           const context_msg = await check_issue('sys_check',msg);
