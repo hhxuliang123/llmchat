@@ -10,7 +10,9 @@ import QianWen, AWSAudio
 import enum
 import aiohttp
 import aiofiles
+import openai
 
+openai.api_key = os.environ.get('OPENAI_KEY')
 
 app = FastAPI()
 
@@ -85,6 +87,66 @@ async def qianwenStreamChat(request: Request):
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred in the model.")    
     generator = chat_generator(prompt, llm_type, history, max_length, top_p, temperature)
     return StreamingResponse(generator, media_type="text/plain")
+
+
+
+pic_dall_e_file_map_lock = asyncio.Lock()
+data_dall_e_dict = {}
+try:
+    with open('json_file_dall_e.json') as f:
+        data_dall_e_dict = json.load(f)
+except FileNotFoundError:
+    pass
+
+@app.post("/dall_e")
+async def dall_e(request: Request):
+    try:
+        json_post_raw = await request.json()
+        prompt = json_post_raw.get('prompt')
+        action = json_post_raw.get('action')
+        print(f"DALL-E generator: action is {action}, prompt is {prompt}.")
+
+        file_name = f"image{time.time()}.jpg"
+        
+        async with pic_dall_e_file_map_lock:
+            if prompt in data_dall_e_dict:
+                if action == 'generate':
+                    print(f"Action is {action}. {data_dall_e_dict[prompt]} is shotted.")
+                    return data_dall_e_dict[prompt]
+                else:
+                    print(f"Action is {action}. Old picture {data_dall_e_dict[prompt]} is deleted.")
+                    os.remove(f"files/{data_dall_e_dict[prompt]}")
+                    del data_dall_e_dict[prompt]
+                    async with aiofiles.open('json_file.json', 'w') as f:
+                        await f.write(json.dumps(data_dall_e_dict))
+    
+        result = openai.Image.create(prompt=prompt, n=1, size="512x512")
+        print(type(result))
+        print(result)
+        url = result['data'][0]['url']
+        print(url)
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    file_path = os.path.join(os.getcwd()+'/files/', file_name)
+                    async with aiofiles.open(file_path, 'wb') as file:
+                        await file.write(await response.read())
+                else:
+                    print(f"Unable to download image. Server responded with status code {response.status}")
+        
+        async with pic_dall_e_file_map_lock:
+            data_dall_e_dict[prompt] = file_name
+            async with aiofiles.open('json_file.json', 'w') as f:
+                await f.write(json.dumps(data_dall_e_dict))
+    
+        print(f"{file_name} generate is done and then return.")
+        return file_name
+        
+    except Exception as e:
+        print(f"Error: {e}")  
+        return {"Error": str(e)}
+
 
 pic_file_map_lock = asyncio.Lock()
 data_dict = {}

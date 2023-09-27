@@ -131,6 +131,29 @@ export const OpenAIStream = async (
   return stream;
 };
 
+export const DALL_E = async (
+  messages: Message[],
+) => {
+  const cmd = messages[messages.length-1].content;
+  console.log(cmd);
+  
+  // streamed response
+  const url = "http://127.0.0.1:11223/dall_e";
+  const response = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      prompt: cmd,
+      action: 'regenerate',
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  //@ts-ignore
+  const filename = await response.json();
+  return `![this is the picture](api/showfile?fileName=${filename})`
+};
+
 export const StableDiffusion = async (
   messages: Message[],
 ) => {

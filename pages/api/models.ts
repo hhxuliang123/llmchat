@@ -79,6 +79,7 @@ const handler = async (req: Request): Promise<Response> => {
     { id: 'qwen-turbo', name: '通义千问 turbo'},
     { id: 'qwen-plus', name: '通义千问 plus'},
     { id: 'sd', name: 'Stable Diffusion'},
+    { id: 'DALL-E', name: 'DALL-E'},
     { id: 'google', name: 'Google Search'}
   ]), { status: 200 });
 }
