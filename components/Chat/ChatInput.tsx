@@ -134,8 +134,8 @@ export const ChatInput = ({
     return mobileRegex.test(userAgent);
   };
 
-  const handleInitModal = () => {
-    const selectedPrompt = filteredPrompts[activePromptIndex];
+  const handleInitModal = (ind: number) => {
+    const selectedPrompt = filteredPrompts[ind];
     if (selectedPrompt) {
       setContent((prevContent) => {
         const newContent = prevContent?.replace(
@@ -168,7 +168,7 @@ export const ChatInput = ({
         );
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        handleInitModal();
+        handleInitModal(activePromptIndex);
       } else if (e.key === 'Escape') {
         e.preventDefault();
         setShowPromptList(false);

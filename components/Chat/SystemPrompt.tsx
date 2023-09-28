@@ -66,8 +66,8 @@ export const SystemPrompt: FC<Props> = ({
     }
   };
 
-  const handleInitModal = () => {
-    const selectedPrompt = filteredPrompts[activePromptIndex];
+  const handleInitModal = (ind) => {
+    const selectedPrompt = filteredPrompts[ind];
     setValue((prevVal) => {
       const newContent = prevVal?.replace(/^\ \w*$/, selectedPrompt.content);
       return newContent;
@@ -149,7 +149,7 @@ export const SystemPrompt: FC<Props> = ({
         );
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        handleInitModal();
+        handleInitModal(activePromptIndex);
       } else if (e.key === 'Escape') {
         e.preventDefault();
         setShowPromptList(false);
@@ -210,7 +210,7 @@ export const SystemPrompt: FC<Props> = ({
           }`,
         }}
         placeholder={
-          t(`Enter a prompt or type "/" to select a prompt...`) || ''
+          t(`Enter a prompt or type "Space Bar" to select a prompt...`) || ''
         }
         value={t(value) || ''}
         rows={1}
