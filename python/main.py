@@ -369,7 +369,7 @@ async def audio(id: str):
                     yield audio_data
                 except Empty: # Sleep when there's nothing in the queue
                     count += 1
-                    if currentAudio.status == AUDIOSTA.AUDIOSTOP or count > 14:
+                    if currentAudio.status == AUDIOSTA.AUDIOSTOP or count > 20:
                         break
                     time.sleep(0.45)
             print(f"{time.ctime()}:Session:{id} audio play loop is end.")

@@ -332,7 +332,6 @@ function processValue(cookie_id: string ,tstr: string, ret_str: string, all_mesg
     for (let char of tag_str) {
       if (tstr.includes(char)) {
         const au_s_t = ret_str.slice(0, 1 + ret_str.lastIndexOf(char));
-        console.log(`============${au_s_t}`);
         if (char === ':' && (au_s_t.endsWith('http:') || au_s_t.endsWith('https:'))){
           continue;
         } else if((char === '.' || char === '?') && /:\/\/[^\s\)\n]+[\.\?]$/.test(au_s_t)){
