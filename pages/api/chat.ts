@@ -1,5 +1,5 @@
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
-import { OpenAIError, OpenAIStream, Chatgml6Stream, googleStream, ZhipuAIStream, google_tool, check_issue, testcase, receive_mail,SparkStream, ChatAIStream, StableDiffusion, DALL_E } from '@/utils/server';
+import { OpenAIError, OpenAIStream, Chatgml6Stream, googleStream, ZhipuAIStream, google_tool, check_issue, testcase, receive_mail,SparkStream, ChatAIStream, StableDiffusion, DALL_E, pt_do_action} from '@/utils/server';
 import endent from 'endent';
 import { ChatBody, Message } from '@/types/chat';
 
@@ -62,7 +62,9 @@ const handler = async (req: Request): Promise<Response> => {
     const log = `==>phoneNO:${userid}, receive_message, model:${model['id']}, plugin:${knowledge.id}, msg_len:${msg.length}, audio:${audioid == '' ? 'off' : 'on'}.`
     fetch('http://127.0.0.1:11223/logfile', {method: 'POST', body: JSON.stringify({content: log, msg: msg})});
     console.log(`${new Date()} ${log}`);
-    console.log(msg);
+    const return_msg = await pt_do_action(msg);
+    console.log(return_msg);
+    messagesToSend[messagesToSend.length-1].content = return_msg;
     if(model['id'] !== 'google'){
       if(knowledge.id === PluginID.CHECK_LIST){        
           const context_msg = await check_issue('sys_check',msg);

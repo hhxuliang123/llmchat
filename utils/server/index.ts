@@ -818,3 +818,87 @@ export const exe_code = async (
   
   
 };
+
+export const wscn_tool = async (
+) => {
+  const Res = await fetch('https://api-one-wscn.awtmt.com/apiv1/content/information-flow?accept=article%2Ctopic%2Clive%2Cad%2Cchart&limit=6&cursor=&action=upglide');
+  const Data = await Res.json();
+  interface Source {
+    title: string;
+    link: string;
+    text: string;
+  }
+  
+  const sources: Source[] = Data.data.items.map((item: any) => ({
+    title: item.resource.title,
+    link: item.resource.uri,
+    text: `${item.resource.content_text||''}${item.resource.content_short||''}`,
+  }));
+  const sourcesWithText: any = await Promise.all(
+    sources.map(async (source) => {
+      try {
+        return {
+          ...source,
+        } as Source;
+        
+      } catch (error) {
+        console.error(error);
+        return null;
+      }
+    }),
+  );
+  const filteredSources: Source[] = sourcesWithText.filter(source => source.title !== '');
+
+  const answerPrompt = endent`
+  ${filteredSources.map((source) => {
+    return `${source.title} (链接：${source.link})：${source.text}\\n`;
+  })}`;
+  return answerPrompt;
+};
+
+export const fetch_tool = async (
+  url: string,
+  ) => {
+    const Res = await fetch(url);
+    const Data = await Res.json();
+    return Data;
+  };
+  
+
+
+export const pt_do_action = async (
+  str: string,
+) => {
+  let regex = /PT_WS_FETCH\((.*?)\)/g;
+  let match;
+  let prevIndex = 0;
+  let result = '';
+  
+  while ((match = regex.exec(str)) !== null) {
+    const tmp_s = await wscn_tool();
+    result += str.substring(prevIndex, match.index) + tmp_s;
+    prevIndex = match.index + match[0].length;
+  }
+  result += str.substring(prevIndex);
+
+  regex = /PT_FETCH\((.*?)\)/g;
+  while ((match = regex.exec(str)) !== null) {
+    const Res = await fetch(match[1]);
+    const Data = await Res.json();
+    result += str.substring(prevIndex, match.index) + JSON.stringify(Data);
+    prevIndex = match.index + match[0].length;
+  }
+  result += str.substring(prevIndex);
+  
+  return result;
+  /*
+  const regex = /PT_WS_FETCH\((.*?)\)/g;
+  let match;
+  
+  while ((match = regex.exec(str)) !== null) {
+    const matchedString = match[0]; // 匹配到的完整字符串
+    const capturedGroup = match[1]; // 捕获的分组内容
+    console.log('匹配到的字符串:', matchedString);
+    console.log('捕获的分组内容:', capturedGroup);
+  }*/
+};

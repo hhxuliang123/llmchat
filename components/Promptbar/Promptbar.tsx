@@ -194,6 +194,43 @@ const Promptbar = () => {
       },
       "folderId": null
     });
+    prompts.push({
+      "id": "5e027be9-56db-5340-58f0-5769864867a5",
+      "name": "新闻头条",
+      "description": "baidu新闻头条",
+      "content": `用简洁的语言总结下面的实时新闻信息。每一句话后面加上新闻的链接，采用markdown的方式显示。
+      新闻信息如下：
+      PT_FETCH(https://api.1314.cool/getbaiduhot/)`,
+      "model": {
+          "id": "gpt-3.5",
+          "name": "GPT-3.5",
+          "maxLength": 12000,
+          "tokenLimit": 4000
+      },
+      "folderId": null
+    });
+    prompts.push({
+      "id": "6e027be9-66db-6340-68f0-6769864867a5",
+      "name": "实时财经",
+      "description": "实时财经新闻，来自华尔街见闻",
+      "content": `请提供我所请求的信息。使用这些来源提供准确的回答。以 markdown 格式回复。在每个句子的末尾添加链接（例如：[链接](https://.......)）使用引用的链接作为 markdown 链接引用。提供准确的回答后停止。今天的日期是 ${new Date().toLocaleDateString()}。
+
+      示例来源: 途虎上市首日遭到京东“阻击”：如何在价格战中突围盈利 (链接：https://wallstreetcn.com/articles/3698838)
+      
+      示例回复: 途虎于首日上市面临了京东的竞争，这让它在价格战中寻求盈利的突破（[链接](https://wallstreetcn.com/articles/3698838)）。
+      
+      来源:
+      PT_WS_FETCH()
+      
+      输入: 按照上面的格式要求总结一下来源中的新闻信息`,
+      "model": {
+          "id": "gpt-3.5",
+          "name": "GPT-3.5",
+          "maxLength": 12000,
+          "tokenLimit": 4000
+      },
+      "folderId": null
+    });
   }
 
   return (
