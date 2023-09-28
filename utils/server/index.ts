@@ -893,8 +893,13 @@ export const pt_do_action = async (
     result += str.substring(prevIndex, match.index) + tmp_s;
     prevIndex = match.index + match[0].length;
   }
-  result += str.substring(prevIndex);
-
+  if(prevIndex != 0){
+    result += str.substring(prevIndex);
+    str = result;
+    result = '';
+    prevIndex = 0;
+  }
+  
   regex = /PT_FETCH\((.*?)\)/g;
   while ((match = regex.exec(str)) !== null) {
     const Res = await fetch(match[1]);
