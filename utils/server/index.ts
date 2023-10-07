@@ -318,47 +318,32 @@ export const SparkStream = async (
 };
 
 function processValue(cookie_id: string ,tstr: string, ret_str: string, all_mesg: boolean): string {
-  function isEnglish(s) {
-    return /^[\x00-\x7F]*$/.test(s.slice(0, 100));
-  }
   let au_s = '';
   if (all_mesg){
-    au_s = ret_str;
+    au_s = ret_str.trim();
+    ret_str = '';
   } else {
-    let tag_str = '。.！!？?：:';
-    if (!isEnglish(ret_str)){
-      tag_str = '。！？：';
-    }
+    const tag_str = ["\n","。","！","？","：","；",". ","? ","! ","; "];
     for (let char of tag_str) {
-      if (tstr.includes(char)) {
-        const au_s_t = ret_str.slice(0, 1 + ret_str.lastIndexOf(char));
-        if (char === ':' && (au_s_t.endsWith('http:') || au_s_t.endsWith('https:'))){
-          continue;
-        } else if((char === '.' || char === '?') && /:\/\/[^\s\)\n]+[\.\?]$/.test(au_s_t)){
-          continue;
-        }
-        au_s = au_s_t.replace(/\[[^\]]*\]\([^)]*\)/g,'').replace(/(https?:\/\/[^\s]+)/g,'');
-        ret_str = ret_str.slice(1 + ret_str.lastIndexOf(char));
+      if (ret_str.includes(char)){
+        au_s = ret_str.slice(0, char.length + ret_str.lastIndexOf(char)).trim();
+        ret_str = ret_str.slice(char.length + ret_str.lastIndexOf(char));
         break;
-      } 
+      }
     }
   }
-
+  
   if(au_s !== '') {
-            fetch("http://127.0.0.1:11223/audio_txt", {
+    au_s = au_s.replace(/\!\[(.*?)\]\((.*?)\)/g, '请参见图片$1。');
+    au_s = au_s.replace(/\[(.*?)\]\((.*?)\)/g, '$1');
+    au_s = au_s.replace(/https?:\/\/[^\s]+/g,'').trim();
+    fetch("http://127.0.0.1:11223/audio_txt", {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({content: au_s, action: 'text', id: cookie_id})
+          body: JSON.stringify({content: au_s, action: (all_mesg ? 'end' : 'text'), id: cookie_id})
       });
   }
 
-  if(all_mesg) {
-    fetch("http://127.0.0.1:11223/audio_txt", {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({content: au_s, action: 'end', id: cookie_id})
-    });
-  }
   return ret_str;
 }
 
